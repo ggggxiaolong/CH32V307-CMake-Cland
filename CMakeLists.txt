@@ -1,10 +1,11 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 cmake_minimum_required(VERSION 3.20)
 
 # 工具链设置
-set(TOOLPATH  D:/0wch/toolchain/RISCVEmbeddedGCC/bin/riscv-none-embed-)
+set(TOOLPATH  /home/MrTan/Documents/ch32_toolchain/MRS_Toolchain_Linux_x64_V210/RISC-V_Embedded_GCC/bin/riscv-none-embed-)
 
 if (WIN32)
 	MESSAGE(STATUS "Now is windows!")
@@ -30,7 +31,7 @@ endif ()
 
 # 项目设置
 project(ch32v307-ninja C CXX ASM)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 99)
 
 # 编译参数 一般不用改

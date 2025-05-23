@@ -1,0 +1,4 @@
+CompileFlags:
+  Add: [
+    --target=riscv32-unknown-elf,-Wno-implicit-function-declaration, -Wno-int-conversion, -ferror-limit=500, -std=c++20
+  ]

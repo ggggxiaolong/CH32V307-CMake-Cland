@@ -3,12 +3,12 @@
 if [ -d "build/" ]; then
     echo "Found build/"
     cd build
-    cmake -GNinja ..
+    cmake -GNinja ../
     ninja
 else
     echo "Not Found build/"
     mkdir build
     cd build
-    cmake -GNinja ..
+    cmake -GNinja ../
     ninja
 fi
