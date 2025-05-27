@@ -1,0 +1,16 @@
+{
+    "cortex-debug.openocdPath": "${userHome}/Documents/ch32_toolchain/OpenOCD/OpenOCD/bin/openocd",
+    "cortex-debug.gdbPath": "${userHome}/Documents/ch32_toolchain/riscv_gcc/bin/riscv-none-embed-gdb",
+    "search.exclude": {
+        "**/build": true
+      },
+      "files.associations": {
+        "uart.h": "c",
+        "debug.h": "c",
+        "ch32v20x.h": "c",
+        "common_defs.h": "c",
+        "rcc.h": "c",
+        "log.h": "c",
+        "delay.h": "c"
+      }
+}

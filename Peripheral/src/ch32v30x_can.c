@@ -1,11 +1,13 @@
 /********************************** (C) COPYRIGHT  *******************************
 * File Name          : ch32v30x_can.c
 * Author             : WCH
-* Version            : V1.0.0
-* Date               : 2021/06/06
+* Version            : V1.0.1
+* Date               : 2025/04/06
 * Description        : This file provides all the CAN firmware functions.
+*********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* SPDX-License-Identifier: Apache-2.0
+* Attention: This software (modified or not) and binary are used for 
+* microcontroller manufactured by Nanjing Qinheng Microelectronics.
 *******************************************************************************/
 #include "ch32v30x_can.h"
 #include "ch32v30x_rcc.h"
@@ -86,6 +88,85 @@ uint8_t CAN_Init(CAN_TypeDef *CANx, CAN_InitTypeDef *CAN_InitStruct)
 {
     uint8_t  InitStatus = CAN_InitStatus_Failed;
     uint32_t wait_ack = 0x00000000;
+	uint32_t chipid = DBGMCU_GetCHIPID();
+	uint32_t chippackid = (chipid >> 4) & 0xf;
+    if(chippackid >= 4 && chippackid <= 7)
+	{
+        if(CAN1 == CANx)
+        {
+            (*(__IO uint32_t *)(0x40021010)) |= 0x2000000;
+            (*(__IO uint32_t *)(0x40021010)) &= ~(0x2000000);
+        }else if(CAN2 == CANx)
+        {
+            (*(__IO uint32_t *)(0x40021010)) |= 0x4000000;
+            (*(__IO uint32_t *)(0x40021010)) &= ~(0x4000000);
+        }
+        
+        CANx->CTLR &= ~0x2;
+        CANx->CTLR |= 0x1;
+        
+        while(!(CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF))
+        {
+            wait_ack++;
+        }
+
+        if((CANx->STATR & 0x1))
+        {
+            CANx->BTIMR = ( uint32_t)0xC1100000| \
+                                    ((uint32_t)SystemCoreClock/(((((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x7) < 0x4) ? 1 : (uint32_t)0x2<<(((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x3))/4000000 - 1);
+        }
+        else
+        {
+            return CAN_InitStatus_Failed;
+        }
+        CANx->CTLR &= ~0x1;
+        wait_ack = 0;
+        while((CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF))
+        {
+            wait_ack++;
+        }
+
+        if((CANx->STATR & 0x1)){
+            return CAN_InitStatus_Failed;
+        }
+
+        (*(__IO uint32_t *)(0x4000660C)) |= 0x3;
+        (*(__IO uint32_t *)(0x40006640)) = 0x0;
+        (*(__IO uint32_t *)(0x40006644)) = 0x0;
+        (*(__IO uint32_t *)(0x40006648)) = 0x0;
+        (*(__IO uint32_t *)(0x4000664C)) = 0x0;
+        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;	
+        (*(__IO uint32_t *)(0x40006600)) &= ~0x1; 	
+        CAN_SlaveStartBank(1);
+        if(CAN1 == CANx)
+        {
+            (*(__IO uint32_t *)(0x40006580)) |= 0x3;
+            while(!((*(__IO uint32_t *)(0x4000640C)) & 0x3));
+            (*(__IO uint32_t *)(0x4000640C)) = 0x38;
+        }else if (CAN2 == CANx)
+        {
+            (*(__IO uint32_t *)(0x40006980)) |= 0x3;
+            while(!((*(__IO uint32_t *)(0x4000680C)) & 0x3));
+            (*(__IO uint32_t *)(0x4000680C)) = 0x38;
+        }
+        
+        if(CAN1 == CANx)
+        {
+            (*(__IO uint32_t *)(0x40021010)) |= 0x2000000;
+            (*(__IO uint32_t *)(0x40021010)) &= ~(0x2000000);
+        }else if(CAN2 == CANx)
+        {
+            (*(__IO uint32_t *)(0x40021010)) |= 0x4000000;
+            (*(__IO uint32_t *)(0x40021010)) &= ~(0x4000000);
+        }
+
+        (*(__IO uint32_t *)(0x40006600)) |= 0x1; 	
+        (*(__IO uint32_t *)(0x4000660C)) |= 0x3;	
+        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;	
+        (*(__IO uint32_t *)(0x40006600)) &= ~0x1; 	
+        CAN_SlaveStartBank(1);
+        wait_ack = 0;
+	}
 
     CANx->CTLR &= (~(uint32_t)CAN_CTLR_SLEEP);
     CANx->CTLR |= CAN_CTLR_INRQ;
@@ -324,6 +405,9 @@ void CAN_DBGFreeze(CAN_TypeDef *CANx, FunctionalState NewState)
  *
  * @param   CANx - where x can be 1 to select the CAN peripheral.
  *          NewState - ENABLE or DISABLE.
+ *          Note-
+ *          DLC must be programmed as 8 in order Time Stamp (2 bytes) to be 
+ *          sent over the CAN bus. 
  *
  * @return  none
  */
@@ -792,7 +876,13 @@ uint8_t CAN_GetLastErrorCode(CAN_TypeDef *CANx)
  * @brief   Returns the CANx Receive Error Counter (REC).
  *
  * @param   CANx - where x can be 1 to select the CAN peripheral.
- *
+ *         Note-   
+ *         In case of an error during reception, this counter is incremented 
+ *         by 1 or by 8 depending on the error condition as defined by the CAN 
+ *         standard. After every successful reception, the counter is 
+ *         decremented by 1 or reset to 120 if its value was higher than 128. 
+ *         When the counter value exceeds 127, the CAN controller enters the 
+ *         error passive state.  
  * @return  counter - CAN Receive Error Counter.
  */
 uint8_t CAN_GetReceiveErrorCounter(CAN_TypeDef *CANx)

@@ -1,0 +1,41 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Flash OpenOCD",
+      "type": "shell",
+      "group": "build",
+      "command": "${userHome}/Documents/ch32_toolchain/OpenOCD/OpenOCD/bin/openocd -f ${userHome}/Documents/ch32_toolchain/OpenOCD/OpenOCD/bin/wch-riscv.cfg -c init -c halt -c \"program build/ch32v307-ninja.elf\" -c wlink_reset_resume -c exit",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "run_openocd",
+      "type": "process",
+      "isBackground": true,
+      "command": "${userHome}/Documents/ch32_toolchain/OpenOCD/OpenOCD/bin/openocd",
+      "args": [
+        "-f",
+        "${userHome}/Documents/ch32_toolchain/OpenOCD/OpenOCD/bin/wch-riscv.cfg"
+      ],
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "."
+          }
+        }
+      ]
+    }
+  ]
+}
