@@ -12,7 +12,7 @@
             "type": "cortex-debug",
             "servertype": "external",
             "gdbTarget": ":3333",
-            "gdbPath": "${userHome}/Documents/ch32_toolchain/riscv_gcc/bin/riscv-none-embed-gdb",
+            "gdbPath": "${userHome}/Documents/ch32_toolchain/riscv_gcc12/bin/riscv-wch-elf-gdb",
             "svdPath": "${workspaceFolder}/CH32V307xx.svd",
             "preLaunchTask": "run_openocd",
             "runToEntryPoint": "main",

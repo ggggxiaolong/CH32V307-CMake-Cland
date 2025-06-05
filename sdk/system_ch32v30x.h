@@ -1,20 +1,33 @@
 /********************************** (C) COPYRIGHT *******************************
-* File Name          : ch32v30x_it.h
+* File Name          : system_ch32v30x.h
 * Author             : WCH
 * Version            : V1.0.0
 * Date               : 2021/06/06
-* Description        : This file contains the headers of the interrupt handlers.
+* Description        : CH32V30x Device Peripheral Access Layer System Header File.
 *********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
 * Attention: This software (modified or not) and binary are used for 
 * microcontroller manufactured by Nanjing Qinheng Microelectronics.
 *******************************************************************************/
-#ifndef __CH32V30x_IT_H
-#define __CH32V30x_IT_H
+#ifndef __SYSTEM_CH32V30x_H 
+#define __SYSTEM_CH32V30x_H
+#include <cstdint>
 
-#include "../core/debug/debug.hpp"
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
+extern uint32_t SystemCoreClock;          /* System Clock Frequency (Core Clock) */
 
-#endif /* __CH32V30x_IT_H */
+/* System_Exported_Functions */  
+extern void SystemInit(void);
+extern void SystemCoreClockUpdate(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /*__CH32V30x_SYSTEM_H */
+
 
 
