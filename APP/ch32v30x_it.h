@@ -12,7 +12,7 @@
 #ifndef __CH32V30x_IT_H
 #define __CH32V30x_IT_H
 
-#include "../core/debug/debug.hpp"
+#include "debug.h"
 
 
 #endif /* __CH32V30x_IT_H */

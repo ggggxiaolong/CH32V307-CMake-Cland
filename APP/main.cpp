@@ -1,5 +1,5 @@
-#include "debug/debug.hpp"
-#include "system_ch32v30x.h"
+#include "../Debug/debug.h"
+#include "../sdk/system_ch32v30x.h"
 
 void GPIO_INIT(void){
     GPIO_InitTypeDef GPIO_InitStructure;

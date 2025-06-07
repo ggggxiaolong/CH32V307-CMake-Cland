@@ -11,7 +11,7 @@
 *******************************************************************************/
 #ifndef __SYSTEM_CH32V30x_H 
 #define __SYSTEM_CH32V30x_H
-#include <cstdint>
+#include <stdint.h>
 
 #ifdef __cplusplus
  extern "C" {

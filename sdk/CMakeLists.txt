@@ -36,7 +36,7 @@ file(GLOB_RECURSE includes CONFIGURE_DEPENDS ./*.h)
 # 添加源文件并创建库
 add_library(sdk ${srcs})
 # 添加头文件目录
-target_include_directories(core PUBLIC ${PROJECT_SOURCE_DIR}
+target_include_directories(sdk PUBLIC ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/Core
     ${PROJECT_SOURCE_DIR}/Peripheral/inc
     ${PROJECT_SOURCE_DIR}/Peripheral

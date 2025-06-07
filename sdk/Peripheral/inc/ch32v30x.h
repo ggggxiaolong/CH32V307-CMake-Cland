@@ -6623,7 +6623,9 @@ typedef struct
 #define  TKEY_CHARGE1_TKCG17                          ((uint32_t)0xE00000)            
 
 
+#ifndef __CH32V30x_CONF_H
 #include "ch32v30x_conf.h"
+#endif
 
 
 #ifdef __cplusplus
