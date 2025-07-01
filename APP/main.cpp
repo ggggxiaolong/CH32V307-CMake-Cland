@@ -1,6 +1,6 @@
 // // #include "../Debug/debug.h"
-// #include "../sdk/Peripheral/inc/ch32v30x.h"
-// #include "../sdk/system_ch32v30x.h"
+// #include "sdk/Peripheral/inc/ch32v30x.h"
+// #include "sdk/system_ch32v30x.h"
 
 // void GPIO_INIT(void) {
 //     GPIO_InitTypeDef GPIO_InitStructure;

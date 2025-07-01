@@ -125,7 +125,7 @@ real_t time() {
 }
 }  // namespace ymd::clock
 
-void SysTick_Init() {
+void Systick_Init() {
     SysTick->SR = 0;
     SysTick->CTLR = 0;
     SysTick->CNT = 0;

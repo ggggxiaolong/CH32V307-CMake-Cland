@@ -63,8 +63,8 @@ add_subdirectory(hal)
 
 # 源码文件
 file(GLOB_RECURSE SOURCES
-    "APP/*.c"
-    "APP/*.cpp"
+    # "APP/*.c"
+    "APP/main.cpp"
     # "Debug/debug.c"
     "sdk/Startup/startup_ch32v30x_D8C.S"
 )
