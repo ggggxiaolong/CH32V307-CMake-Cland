@@ -1,19 +1,19 @@
 /********************************** (C) COPYRIGHT *******************************
-* File Name          : ch32v30x_rtc.c
-* Author             : WCH
-* Version            : V1.0.0
-* Date               : 2021/06/06
-* Description        : This file provides all the RTC firmware functions.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_rtc.h"
+ * File Name          : ch32v30x_rtc.c
+ * Author             : WCH
+ * Version            : V1.0.0
+ * Date               : 2021/06/06
+ * Description        : This file provides all the RTC firmware functions.
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_rtc.h"
 
 /* RTC_Private_Defines */
-#define RTC_LSB_MASK     ((uint32_t)0x0000FFFF) /* RTC LSB Mask */
-#define PRLH_MSB_MASK    ((uint32_t)0x000F0000) /* RTC Prescaler MSB Mask */
+#define RTC_LSB_MASK ((uint32_t)0x0000FFFF)  /* RTC LSB Mask */
+#define PRLH_MSB_MASK ((uint32_t)0x000F0000) /* RTC Prescaler MSB Mask */
 
 /*********************************************************************
  * @fn      RTC_ITConfig
@@ -27,14 +27,10 @@
  *
  * @return  NewState - new state of the specified RTC interrupts(ENABLE or DISABLE).
  */
-void RTC_ITConfig(uint16_t RTC_IT, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RTC_ITConfig(uint16_t RTC_IT, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RTC->CTLRH |= RTC_IT;
-    }
-    else
-    {
+    } else {
         RTC->CTLRH &= (uint16_t)~RTC_IT;
     }
 }
@@ -46,10 +42,7 @@ void RTC_ITConfig(uint16_t RTC_IT, FunctionalState NewState)
  *
  * @return  none
  */
-void RTC_EnterConfigMode(void)
-{
-    RTC->CTLRL |= RTC_CTLRL_CNF;
-}
+void RTC_EnterConfigMode(void) { RTC->CTLRL |= RTC_CTLRL_CNF; }
 
 /*********************************************************************
  * @fn      RTC_ExitConfigMode
@@ -58,10 +51,7 @@ void RTC_EnterConfigMode(void)
  *
  * @return  none
  */
-void RTC_ExitConfigMode(void)
-{
-    RTC->CTLRL &= (uint16_t) ~((uint16_t)RTC_CTLRL_CNF);
-}
+void RTC_ExitConfigMode(void) { RTC->CTLRL &= (uint16_t)~((uint16_t)RTC_CTLRL_CNF); }
 
 /*********************************************************************
  * @fn      RTC_GetCounter
@@ -70,32 +60,30 @@ void RTC_ExitConfigMode(void)
  *
  * @return  RTC counter value
  */
-uint32_t RTC_GetCounter(void)
-{
+uint32_t RTC_GetCounter(void) {
     uint16_t high1a = 0, high1b = 0, high2a = 0, high2b = 0;
     uint16_t low1 = 0, low2 = 0;
 
-    do{
+    do {
         high1a = RTC->CNTH;
         high1b = RTC->CNTH;
-    }while( high1a != high1b );
+    } while (high1a != high1b);
 
-    do{
+    do {
         low1 = RTC->CNTL;
         low2 = RTC->CNTL;
-    }while( low1 != low2 );
+    } while (low1 != low2);
 
-    do{
+    do {
         high2a = RTC->CNTH;
         high2b = RTC->CNTH;
-    }while( high2a != high2b );
+    } while (high2a != high2b);
 
-    if(high1b != high2b)
-    {
-        do{
+    if (high1b != high2b) {
+        do {
             low1 = RTC->CNTL;
             low2 = RTC->CNTL;
-        }while( low1 != low2 );
+        } while (low1 != low2);
     }
 
     return (((uint32_t)high2b << 16) | low2);
@@ -110,8 +98,7 @@ uint32_t RTC_GetCounter(void)
  *
  * @return  RTC counter value
  */
-void RTC_SetCounter(uint32_t CounterValue)
-{
+void RTC_SetCounter(uint32_t CounterValue) {
     RTC_EnterConfigMode();
     RTC->CNTH = CounterValue >> 16;
     RTC->CNTL = (CounterValue & RTC_LSB_MASK);
@@ -127,8 +114,7 @@ void RTC_SetCounter(uint32_t CounterValue)
  *
  * @return  none
  */
-void RTC_SetPrescaler(uint32_t PrescalerValue)
-{
+void RTC_SetPrescaler(uint32_t PrescalerValue) {
     RTC_EnterConfigMode();
     RTC->PSCRH = (PrescalerValue & PRLH_MSB_MASK) >> 16;
     RTC->PSCRL = (PrescalerValue & RTC_LSB_MASK);
@@ -144,8 +130,7 @@ void RTC_SetPrescaler(uint32_t PrescalerValue)
  *
  * @return  none
  */
-void RTC_SetAlarm(uint32_t AlarmValue)
-{
+void RTC_SetAlarm(uint32_t AlarmValue) {
     RTC_EnterConfigMode();
     RTC->ALRMH = AlarmValue >> 16;
     RTC->ALRML = (AlarmValue & RTC_LSB_MASK);
@@ -159,32 +144,30 @@ void RTC_SetAlarm(uint32_t AlarmValue)
  *
  * @return  RTC Divider value
  */
-uint32_t RTC_GetDivider(void)
-{
+uint32_t RTC_GetDivider(void) {
     uint16_t high1a = 0, high1b = 0, high2a = 0, high2b = 0;
     uint16_t low1 = 0, low2 = 0;
 
-    do{
+    do {
         high1a = RTC->DIVH;
         high1b = RTC->DIVH;
-    }while( high1a != high1b );
+    } while (high1a != high1b);
 
-    do{
+    do {
         low1 = RTC->DIVL;
         low2 = RTC->DIVL;
-    }while( low1 != low2 );
+    } while (low1 != low2);
 
-    do{
+    do {
         high2a = RTC->DIVH;
         high2b = RTC->DIVH;
-    }while( high2a != high2b );
+    } while (high2a != high2b);
 
-    if(high1b != high2b)
-    {
-        do{
+    if (high1b != high2b) {
+        do {
             low1 = RTC->DIVL;
             low2 = RTC->DIVL;
-        }while( low1 != low2 );
+        } while (low1 != low2);
     }
 
     return ((((uint32_t)high2b & (uint32_t)0x000F) << 16) | low2);
@@ -198,10 +181,8 @@ uint32_t RTC_GetDivider(void)
  *          This function must be called before any write to RTC registers.
  * @return  none
  */
-void RTC_WaitForLastTask(void)
-{
-    while((RTC->CTLRL & RTC_FLAG_RTOFF) == (uint16_t)RESET)
-    {
+void RTC_WaitForLastTask(void) {
+    while ((RTC->CTLRL & RTC_FLAG_RTOFF) == (uint16_t)RESET) {
     }
 }
 
@@ -212,14 +193,12 @@ void RTC_WaitForLastTask(void)
  *          Note-
  *          This function must be called before any read operation after an APB reset
  *          or an APB clock stop.
- *          
+ *
  * @return  none
  */
-void RTC_WaitForSynchro(void)
-{
+void RTC_WaitForSynchro(void) {
     RTC->CTLRL &= (uint16_t)~RTC_FLAG_RSF;
-    while((RTC->CTLRL & RTC_FLAG_RSF) == (uint16_t)RESET)
-    {
+    while ((RTC->CTLRL & RTC_FLAG_RSF) == (uint16_t)RESET) {
     }
 }
 
@@ -237,15 +216,11 @@ void RTC_WaitForSynchro(void)
  *
  * @return  The new state of RTC_FLAG (SET or RESET)
  */
-FlagStatus RTC_GetFlagStatus(uint16_t RTC_FLAG)
-{
+FlagStatus RTC_GetFlagStatus(uint16_t RTC_FLAG) {
     FlagStatus bitstatus = RESET;
-    if((RTC->CTLRL & RTC_FLAG) != (uint16_t)RESET)
-    {
+    if ((RTC->CTLRL & RTC_FLAG) != (uint16_t)RESET) {
         bitstatus = SET;
-    }
-    else
-    {
+    } else {
         bitstatus = RESET;
     }
     return bitstatus;
@@ -264,10 +239,7 @@ FlagStatus RTC_GetFlagStatus(uint16_t RTC_FLAG)
  *
  * @return  none
  */
-void RTC_ClearFlag(uint16_t RTC_FLAG)
-{
-    RTC->CTLRL &= (uint16_t)~RTC_FLAG;
-}
+void RTC_ClearFlag(uint16_t RTC_FLAG) { RTC->CTLRL &= (uint16_t)~RTC_FLAG; }
 
 /*********************************************************************
  * @fn      RTC_GetITStatus
@@ -281,17 +253,13 @@ void RTC_ClearFlag(uint16_t RTC_FLAG)
  *
  * @return  The new state of the RTC_IT (SET or RESET)
  */
-ITStatus RTC_GetITStatus(uint16_t RTC_IT)
-{
+ITStatus RTC_GetITStatus(uint16_t RTC_IT) {
     ITStatus bitstatus = RESET;
 
     bitstatus = (ITStatus)(RTC->CTLRL & RTC_IT);
-    if(((RTC->CTLRH & RTC_IT) != (uint16_t)RESET) && (bitstatus != (uint16_t)RESET))
-    {
+    if (((RTC->CTLRH & RTC_IT) != (uint16_t)RESET) && (bitstatus != (uint16_t)RESET)) {
         bitstatus = SET;
-    }
-    else
-    {
+    } else {
         bitstatus = RESET;
     }
     return bitstatus;
@@ -309,7 +277,4 @@ ITStatus RTC_GetITStatus(uint16_t RTC_IT)
  *
  * @return  none
  */
-void RTC_ClearITPendingBit(uint16_t RTC_IT)
-{
-    RTC->CTLRL &= (uint16_t)~RTC_IT;
-}
+void RTC_ClearITPendingBit(uint16_t RTC_IT) { RTC->CTLRL &= (uint16_t)~RTC_IT; }

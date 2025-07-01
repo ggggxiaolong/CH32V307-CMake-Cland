@@ -1,48 +1,49 @@
 /********************************** (C) COPYRIGHT  *******************************
-* File Name          : ch32v30x_can.c
-* Author             : WCH
-* Version            : V1.0.1
-* Date               : 2025/04/06
-* Description        : This file provides all the CAN firmware functions.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_can.h"
-#include "ch32v30x_rcc.h"
+ * File Name          : ch32v30x_can.c
+ * Author             : WCH
+ * Version            : V1.0.1
+ * Date               : 2025/04/06
+ * Description        : This file provides all the CAN firmware functions.
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_can.h"
+
+#include "../inc/ch32v30x_rcc.h"
 
 /* CAN CTLR Register bits */
-#define CTLR_DBF            ((uint32_t)0x00010000)
+#define CTLR_DBF ((uint32_t)0x00010000)
 
 /* CAN Mailbox Transmit Request */
-#define TMIDxR_TXRQ         ((uint32_t)0x00000001)
+#define TMIDxR_TXRQ ((uint32_t)0x00000001)
 
 /* CAN FCTLR Register bits */
-#define FCTLR_FINIT         ((uint32_t)0x00000001)
+#define FCTLR_FINIT ((uint32_t)0x00000001)
 
 /* Time out for INAK bit */
-#define INAK_TIMEOUT        ((uint32_t)0x0000FFFF)
+#define INAK_TIMEOUT ((uint32_t)0x0000FFFF)
 /* Time out for SLAK bit */
-#define SLAK_TIMEOUT        ((uint32_t)0x0000FFFF)
+#define SLAK_TIMEOUT ((uint32_t)0x0000FFFF)
 
 /* Flags in TSTATR register */
-#define CAN_FLAGS_TSTATR    ((uint32_t)0x08000000)
+#define CAN_FLAGS_TSTATR ((uint32_t)0x08000000)
 /* Flags in RFIFO1 register */
-#define CAN_FLAGS_RFIFO1    ((uint32_t)0x04000000)
+#define CAN_FLAGS_RFIFO1 ((uint32_t)0x04000000)
 /* Flags in RFIFO0 register */
-#define CAN_FLAGS_RFIFO0    ((uint32_t)0x02000000)
+#define CAN_FLAGS_RFIFO0 ((uint32_t)0x02000000)
 /* Flags in STATR register */
-#define CAN_FLAGS_STATR     ((uint32_t)0x01000000)
+#define CAN_FLAGS_STATR ((uint32_t)0x01000000)
 /* Flags in ERRSR register */
-#define CAN_FLAGS_ERRSR     ((uint32_t)0x00F00000)
+#define CAN_FLAGS_ERRSR ((uint32_t)0x00F00000)
 
 /* Mailboxes definition */
-#define CAN_TXMAILBOX_0     ((uint8_t)0x00)
-#define CAN_TXMAILBOX_1     ((uint8_t)0x01)
-#define CAN_TXMAILBOX_2     ((uint8_t)0x02)
+#define CAN_TXMAILBOX_0 ((uint8_t)0x00)
+#define CAN_TXMAILBOX_1 ((uint8_t)0x01)
+#define CAN_TXMAILBOX_2 ((uint8_t)0x02)
 
-#define CAN_MODE_MASK       ((uint32_t)0x00000003)
+#define CAN_MODE_MASK ((uint32_t)0x00000003)
 
 static ITStatus CheckITStatus(uint32_t CAN_Reg, uint32_t It_Bit);
 
@@ -56,15 +57,11 @@ static ITStatus CheckITStatus(uint32_t CAN_Reg, uint32_t It_Bit);
  *
  * @return  none
  */
-void CAN_DeInit(CAN_TypeDef *CANx)
-{
-    if(CANx == CAN1)
-    {
+void CAN_DeInit(CAN_TypeDef *CANx) {
+    if (CANx == CAN1) {
         RCC_APB1PeriphResetCmd(RCC_APB1Periph_CAN1, ENABLE);
         RCC_APB1PeriphResetCmd(RCC_APB1Periph_CAN1, DISABLE);
-    }
-    else
-    {
+    } else {
         RCC_APB1PeriphResetCmd(RCC_APB1Periph_CAN2, ENABLE);
         RCC_APB1PeriphResetCmd(RCC_APB1Periph_CAN2, DISABLE);
     }
@@ -84,49 +81,44 @@ void CAN_DeInit(CAN_TypeDef *CANx)
  *             CAN_InitStatus_Failed.
  *             CAN_InitStatus_Success.
  */
-uint8_t CAN_Init(CAN_TypeDef *CANx, CAN_InitTypeDef *CAN_InitStruct)
-{
-    uint8_t  InitStatus = CAN_InitStatus_Failed;
+uint8_t CAN_Init(CAN_TypeDef *CANx, CAN_InitTypeDef *CAN_InitStruct) {
+    uint8_t InitStatus = CAN_InitStatus_Failed;
     uint32_t wait_ack = 0x00000000;
-	uint32_t chipid = DBGMCU_GetCHIPID();
-	uint32_t chippackid = (chipid >> 4) & 0xf;
-    if(chippackid >= 4 && chippackid <= 7)
-	{
-        if(CAN1 == CANx)
-        {
+    uint32_t chipid = DBGMCU_GetCHIPID();
+    uint32_t chippackid = (chipid >> 4) & 0xf;
+    if (chippackid >= 4 && chippackid <= 7) {
+        if (CAN1 == CANx) {
             (*(__IO uint32_t *)(0x40021010)) |= 0x2000000;
             (*(__IO uint32_t *)(0x40021010)) &= ~(0x2000000);
-        }else if(CAN2 == CANx)
-        {
+        } else if (CAN2 == CANx) {
             (*(__IO uint32_t *)(0x40021010)) |= 0x4000000;
             (*(__IO uint32_t *)(0x40021010)) &= ~(0x4000000);
         }
-        
+
         CANx->CTLR &= ~0x2;
         CANx->CTLR |= 0x1;
-        
-        while(!(CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF))
-        {
+
+        while (!(CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF)) {
             wait_ack++;
         }
 
-        if((CANx->STATR & 0x1))
-        {
-            CANx->BTIMR = ( uint32_t)0xC1100000| \
-                                    ((uint32_t)SystemCoreClock/(((((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x7) < 0x4) ? 1 : (uint32_t)0x2<<(((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x3))/4000000 - 1);
-        }
-        else
-        {
+        if ((CANx->STATR & 0x1)) {
+            CANx->BTIMR = (uint32_t)0xC1100000 | ((uint32_t)SystemCoreClock /
+                                                      (((((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x7) < 0x4)
+                                                           ? 1
+                                                           : (uint32_t)0x2 << (((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x3)) /
+                                                      4000000 -
+                                                  1);
+        } else {
             return CAN_InitStatus_Failed;
         }
         CANx->CTLR &= ~0x1;
         wait_ack = 0;
-        while((CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF))
-        {
+        while ((CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF)) {
             wait_ack++;
         }
 
-        if((CANx->STATR & 0x1)){
+        if ((CANx->STATR & 0x1)) {
             return CAN_InitStatus_Failed;
         }
 
@@ -135,126 +127,94 @@ uint8_t CAN_Init(CAN_TypeDef *CANx, CAN_InitTypeDef *CAN_InitStruct)
         (*(__IO uint32_t *)(0x40006644)) = 0x0;
         (*(__IO uint32_t *)(0x40006648)) = 0x0;
         (*(__IO uint32_t *)(0x4000664C)) = 0x0;
-        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;	
-        (*(__IO uint32_t *)(0x40006600)) &= ~0x1; 	
+        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;
+        (*(__IO uint32_t *)(0x40006600)) &= ~0x1;
         CAN_SlaveStartBank(1);
-        if(CAN1 == CANx)
-        {
+        if (CAN1 == CANx) {
             (*(__IO uint32_t *)(0x40006580)) |= 0x3;
-            while(!((*(__IO uint32_t *)(0x4000640C)) & 0x3));
+            while (!((*(__IO uint32_t *)(0x4000640C)) & 0x3));
             (*(__IO uint32_t *)(0x4000640C)) = 0x38;
-        }else if (CAN2 == CANx)
-        {
+        } else if (CAN2 == CANx) {
             (*(__IO uint32_t *)(0x40006980)) |= 0x3;
-            while(!((*(__IO uint32_t *)(0x4000680C)) & 0x3));
+            while (!((*(__IO uint32_t *)(0x4000680C)) & 0x3));
             (*(__IO uint32_t *)(0x4000680C)) = 0x38;
         }
-        
-        if(CAN1 == CANx)
-        {
+
+        if (CAN1 == CANx) {
             (*(__IO uint32_t *)(0x40021010)) |= 0x2000000;
             (*(__IO uint32_t *)(0x40021010)) &= ~(0x2000000);
-        }else if(CAN2 == CANx)
-        {
+        } else if (CAN2 == CANx) {
             (*(__IO uint32_t *)(0x40021010)) |= 0x4000000;
             (*(__IO uint32_t *)(0x40021010)) &= ~(0x4000000);
         }
 
-        (*(__IO uint32_t *)(0x40006600)) |= 0x1; 	
-        (*(__IO uint32_t *)(0x4000660C)) |= 0x3;	
-        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;	
-        (*(__IO uint32_t *)(0x40006600)) &= ~0x1; 	
+        (*(__IO uint32_t *)(0x40006600)) |= 0x1;
+        (*(__IO uint32_t *)(0x4000660C)) |= 0x3;
+        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;
+        (*(__IO uint32_t *)(0x40006600)) &= ~0x1;
         CAN_SlaveStartBank(1);
         wait_ack = 0;
-	}
+    }
 
     CANx->CTLR &= (~(uint32_t)CAN_CTLR_SLEEP);
     CANx->CTLR |= CAN_CTLR_INRQ;
 
-    while(((CANx->STATR & CAN_STATR_INAK) != CAN_STATR_INAK) && (wait_ack != INAK_TIMEOUT))
-    {
+    while (((CANx->STATR & CAN_STATR_INAK) != CAN_STATR_INAK) && (wait_ack != INAK_TIMEOUT)) {
         wait_ack++;
     }
 
-    if((CANx->STATR & CAN_STATR_INAK) != CAN_STATR_INAK)
-    {
+    if ((CANx->STATR & CAN_STATR_INAK) != CAN_STATR_INAK) {
         InitStatus = CAN_InitStatus_Failed;
-    }
-    else
-    {
-        if(CAN_InitStruct->CAN_TTCM == ENABLE)
-        {
+    } else {
+        if (CAN_InitStruct->CAN_TTCM == ENABLE) {
             CANx->CTLR |= CAN_CTLR_TTCM;
-        }
-        else
-        {
+        } else {
             CANx->CTLR &= ~(uint32_t)CAN_CTLR_TTCM;
         }
 
-        if(CAN_InitStruct->CAN_ABOM == ENABLE)
-        {
+        if (CAN_InitStruct->CAN_ABOM == ENABLE) {
             CANx->CTLR |= CAN_CTLR_ABOM;
-        }
-        else
-        {
+        } else {
             CANx->CTLR &= ~(uint32_t)CAN_CTLR_ABOM;
         }
 
-        if(CAN_InitStruct->CAN_AWUM == ENABLE)
-        {
+        if (CAN_InitStruct->CAN_AWUM == ENABLE) {
             CANx->CTLR |= CAN_CTLR_AWUM;
-        }
-        else
-        {
+        } else {
             CANx->CTLR &= ~(uint32_t)CAN_CTLR_AWUM;
         }
 
-        if(CAN_InitStruct->CAN_NART == ENABLE)
-        {
+        if (CAN_InitStruct->CAN_NART == ENABLE) {
             CANx->CTLR |= CAN_CTLR_NART;
-        }
-        else
-        {
+        } else {
             CANx->CTLR &= ~(uint32_t)CAN_CTLR_NART;
         }
 
-        if(CAN_InitStruct->CAN_RFLM == ENABLE)
-        {
+        if (CAN_InitStruct->CAN_RFLM == ENABLE) {
             CANx->CTLR |= CAN_CTLR_RFLM;
-        }
-        else
-        {
+        } else {
             CANx->CTLR &= ~(uint32_t)CAN_CTLR_RFLM;
         }
 
-        if(CAN_InitStruct->CAN_TXFP == ENABLE)
-        {
+        if (CAN_InitStruct->CAN_TXFP == ENABLE) {
             CANx->CTLR |= CAN_CTLR_TXFP;
-        }
-        else
-        {
+        } else {
             CANx->CTLR &= ~(uint32_t)CAN_CTLR_TXFP;
         }
 
-        CANx->BTIMR = (uint32_t)((uint32_t)CAN_InitStruct->CAN_Mode << 30) |
-                      ((uint32_t)CAN_InitStruct->CAN_SJW << 24) |
-                      ((uint32_t)CAN_InitStruct->CAN_BS1 << 16) |
-                      ((uint32_t)CAN_InitStruct->CAN_BS2 << 20) |
+        CANx->BTIMR = (uint32_t)((uint32_t)CAN_InitStruct->CAN_Mode << 30) | ((uint32_t)CAN_InitStruct->CAN_SJW << 24) |
+                      ((uint32_t)CAN_InitStruct->CAN_BS1 << 16) | ((uint32_t)CAN_InitStruct->CAN_BS2 << 20) |
                       ((uint32_t)CAN_InitStruct->CAN_Prescaler - 1);
         CANx->CTLR &= ~(uint32_t)CAN_CTLR_INRQ;
         wait_ack = 0;
 
-        while(((CANx->STATR & CAN_STATR_INAK) == CAN_STATR_INAK) && (wait_ack != INAK_TIMEOUT))
-        {
+        while (((CANx->STATR & CAN_STATR_INAK) == CAN_STATR_INAK) && (wait_ack != INAK_TIMEOUT)) {
             wait_ack++;
         }
 
-        if((CANx->STATR & CAN_STATR_INAK) == CAN_STATR_INAK)
-        {
+        if ((CANx->STATR & CAN_STATR_INAK) == CAN_STATR_INAK) {
             InitStatus = CAN_InitStatus_Failed;
-        }
-        else
-        {
+        } else {
             InitStatus = CAN_InitStatus_Success;
         }
     }
@@ -273,16 +233,14 @@ uint8_t CAN_Init(CAN_TypeDef *CANx, CAN_InitTypeDef *CAN_InitStruct)
  *
  * @return  none
  */
-void CAN_FilterInit(CAN_FilterInitTypeDef *CAN_FilterInitStruct)
-{
+void CAN_FilterInit(CAN_FilterInitTypeDef *CAN_FilterInitStruct) {
     uint32_t filter_number_bit_pos = 0;
 
     filter_number_bit_pos = ((uint32_t)1) << CAN_FilterInitStruct->CAN_FilterNumber;
     CAN1->FCTLR |= FCTLR_FINIT;
     CAN1->FWR &= ~(uint32_t)filter_number_bit_pos;
 
-    if(CAN_FilterInitStruct->CAN_FilterScale == CAN_FilterScale_16bit)
-    {
+    if (CAN_FilterInitStruct->CAN_FilterScale == CAN_FilterScale_16bit) {
         CAN1->FSCFGR &= ~(uint32_t)filter_number_bit_pos;
 
         CAN1->sFilterRegister[CAN_FilterInitStruct->CAN_FilterNumber].FR1 =
@@ -294,40 +252,32 @@ void CAN_FilterInit(CAN_FilterInitTypeDef *CAN_FilterInitStruct)
             (0x0000FFFF & (uint32_t)CAN_FilterInitStruct->CAN_FilterIdHigh);
     }
 
-    if(CAN_FilterInitStruct->CAN_FilterScale == CAN_FilterScale_32bit)
-    {
+    if (CAN_FilterInitStruct->CAN_FilterScale == CAN_FilterScale_32bit) {
         CAN1->FSCFGR |= filter_number_bit_pos;
 
         CAN1->sFilterRegister[CAN_FilterInitStruct->CAN_FilterNumber].FR1 =
-            ((0x0000FFFF & (uint32_t)CAN_FilterInitStruct->CAN_FilterIdHigh) << 16) |
-            (0x0000FFFF & (uint32_t)CAN_FilterInitStruct->CAN_FilterIdLow);
+            ((0x0000FFFF & (uint32_t)CAN_FilterInitStruct->CAN_FilterIdHigh) << 16) | (0x0000FFFF & (uint32_t)CAN_FilterInitStruct->CAN_FilterIdLow);
 
         CAN1->sFilterRegister[CAN_FilterInitStruct->CAN_FilterNumber].FR2 =
             ((0x0000FFFF & (uint32_t)CAN_FilterInitStruct->CAN_FilterMaskIdHigh) << 16) |
             (0x0000FFFF & (uint32_t)CAN_FilterInitStruct->CAN_FilterMaskIdLow);
     }
 
-    if(CAN_FilterInitStruct->CAN_FilterMode == CAN_FilterMode_IdMask)
-    {
+    if (CAN_FilterInitStruct->CAN_FilterMode == CAN_FilterMode_IdMask) {
         CAN1->FMCFGR &= ~(uint32_t)filter_number_bit_pos;
-    }
-    else
-    {
+    } else {
         CAN1->FMCFGR |= (uint32_t)filter_number_bit_pos;
     }
 
-    if(CAN_FilterInitStruct->CAN_FilterFIFOAssignment == CAN_Filter_FIFO0)
-    {
+    if (CAN_FilterInitStruct->CAN_FilterFIFOAssignment == CAN_Filter_FIFO0) {
         CAN1->FAFIFOR &= ~(uint32_t)filter_number_bit_pos;
     }
 
-    if(CAN_FilterInitStruct->CAN_FilterFIFOAssignment == CAN_Filter_FIFO1)
-    {
+    if (CAN_FilterInitStruct->CAN_FilterFIFOAssignment == CAN_Filter_FIFO1) {
         CAN1->FAFIFOR |= (uint32_t)filter_number_bit_pos;
     }
 
-    if(CAN_FilterInitStruct->CAN_FilterActivation == ENABLE)
-    {
+    if (CAN_FilterInitStruct->CAN_FilterActivation == ENABLE) {
         CAN1->FWR |= filter_number_bit_pos;
     }
 
@@ -344,8 +294,7 @@ void CAN_FilterInit(CAN_FilterInitTypeDef *CAN_FilterInitStruct)
  *
  * @return  none
  */
-void CAN_StructInit(CAN_InitTypeDef *CAN_InitStruct)
-{
+void CAN_StructInit(CAN_InitTypeDef *CAN_InitStruct) {
     CAN_InitStruct->CAN_TTCM = DISABLE;
     CAN_InitStruct->CAN_ABOM = DISABLE;
     CAN_InitStruct->CAN_AWUM = DISABLE;
@@ -368,8 +317,7 @@ void CAN_StructInit(CAN_InitTypeDef *CAN_InitStruct)
  *
  * @return  none
  */
-void CAN_SlaveStartBank(uint8_t CAN_BankNumber)
-{
+void CAN_SlaveStartBank(uint8_t CAN_BankNumber) {
     CAN1->FCTLR |= FCTLR_FINIT;
     CAN1->FCTLR &= (uint32_t)0xFFFFC0F1;
     CAN1->FCTLR |= (uint32_t)(CAN_BankNumber) << 8;
@@ -386,14 +334,10 @@ void CAN_SlaveStartBank(uint8_t CAN_BankNumber)
  *
  * @return  none
  */
-void CAN_DBGFreeze(CAN_TypeDef *CANx, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void CAN_DBGFreeze(CAN_TypeDef *CANx, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         CANx->CTLR |= CTLR_DBF;
-    }
-    else
-    {
+    } else {
         CANx->CTLR &= ~CTLR_DBF;
     }
 }
@@ -406,23 +350,19 @@ void CAN_DBGFreeze(CAN_TypeDef *CANx, FunctionalState NewState)
  * @param   CANx - where x can be 1 to select the CAN peripheral.
  *          NewState - ENABLE or DISABLE.
  *          Note-
- *          DLC must be programmed as 8 in order Time Stamp (2 bytes) to be 
- *          sent over the CAN bus. 
+ *          DLC must be programmed as 8 in order Time Stamp (2 bytes) to be
+ *          sent over the CAN bus.
  *
  * @return  none
  */
-void CAN_TTComModeCmd(CAN_TypeDef *CANx, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void CAN_TTComModeCmd(CAN_TypeDef *CANx, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         CANx->CTLR |= CAN_CTLR_TTCM;
 
         CANx->sTxMailBox[0].TXMDTR |= ((uint32_t)CAN_TXMDT0R_TGT);
         CANx->sTxMailBox[1].TXMDTR |= ((uint32_t)CAN_TXMDT1R_TGT);
         CANx->sTxMailBox[2].TXMDTR |= ((uint32_t)CAN_TXMDT2R_TGT);
-    }
-    else
-    {
+    } else {
         CANx->CTLR &= (uint32_t)(~(uint32_t)CAN_CTLR_TTCM);
 
         CANx->sTxMailBox[0].TXMDTR &= ((uint32_t)~CAN_TXMDT0R_TGT);
@@ -443,54 +383,35 @@ void CAN_TTComModeCmd(CAN_TypeDef *CANx, FunctionalState NewState)
  * @return  transmit_mailbox - The number of the mailbox that is used for
  *        transmission or CAN_TxStatus_NoMailBox if there is no empty mailbox.
  */
-uint8_t CAN_Transmit(CAN_TypeDef *CANx, CanTxMsg *TxMessage)
-{
+uint8_t CAN_Transmit(CAN_TypeDef *CANx, CanTxMsg *TxMessage) {
     uint8_t transmit_mailbox = 0;
 
-    if((CANx->TSTATR & CAN_TSTATR_TME0) == CAN_TSTATR_TME0)
-    {
+    if ((CANx->TSTATR & CAN_TSTATR_TME0) == CAN_TSTATR_TME0) {
         transmit_mailbox = 0;
-    }
-    else if((CANx->TSTATR & CAN_TSTATR_TME1) == CAN_TSTATR_TME1)
-    {
+    } else if ((CANx->TSTATR & CAN_TSTATR_TME1) == CAN_TSTATR_TME1) {
         transmit_mailbox = 1;
-    }
-    else if((CANx->TSTATR & CAN_TSTATR_TME2) == CAN_TSTATR_TME2)
-    {
+    } else if ((CANx->TSTATR & CAN_TSTATR_TME2) == CAN_TSTATR_TME2) {
         transmit_mailbox = 2;
-    }
-    else
-    {
+    } else {
         transmit_mailbox = CAN_TxStatus_NoMailBox;
     }
 
-    if(transmit_mailbox != CAN_TxStatus_NoMailBox)
-    {
+    if (transmit_mailbox != CAN_TxStatus_NoMailBox) {
         CANx->sTxMailBox[transmit_mailbox].TXMIR &= TMIDxR_TXRQ;
-        if(TxMessage->IDE == CAN_Id_Standard)
-        {
-            CANx->sTxMailBox[transmit_mailbox].TXMIR |= ((TxMessage->StdId << 21) |
-                                                         TxMessage->RTR);
-        }
-        else
-        {
-            CANx->sTxMailBox[transmit_mailbox].TXMIR |= ((TxMessage->ExtId << 3) |
-                                                         TxMessage->IDE |
-                                                         TxMessage->RTR);
+        if (TxMessage->IDE == CAN_Id_Standard) {
+            CANx->sTxMailBox[transmit_mailbox].TXMIR |= ((TxMessage->StdId << 21) | TxMessage->RTR);
+        } else {
+            CANx->sTxMailBox[transmit_mailbox].TXMIR |= ((TxMessage->ExtId << 3) | TxMessage->IDE | TxMessage->RTR);
         }
 
         TxMessage->DLC &= (uint8_t)0x0000000F;
         CANx->sTxMailBox[transmit_mailbox].TXMDTR &= (uint32_t)0xFFFFFFF0;
         CANx->sTxMailBox[transmit_mailbox].TXMDTR |= TxMessage->DLC;
 
-        CANx->sTxMailBox[transmit_mailbox].TXMDLR = (((uint32_t)TxMessage->Data[3] << 24) |
-                                                     ((uint32_t)TxMessage->Data[2] << 16) |
-                                                     ((uint32_t)TxMessage->Data[1] << 8) |
-                                                     ((uint32_t)TxMessage->Data[0]));
-        CANx->sTxMailBox[transmit_mailbox].TXMDHR = (((uint32_t)TxMessage->Data[7] << 24) |
-                                                     ((uint32_t)TxMessage->Data[6] << 16) |
-                                                     ((uint32_t)TxMessage->Data[5] << 8) |
-                                                     ((uint32_t)TxMessage->Data[4]));
+        CANx->sTxMailBox[transmit_mailbox].TXMDLR = (((uint32_t)TxMessage->Data[3] << 24) | ((uint32_t)TxMessage->Data[2] << 16) |
+                                                     ((uint32_t)TxMessage->Data[1] << 8) | ((uint32_t)TxMessage->Data[0]));
+        CANx->sTxMailBox[transmit_mailbox].TXMDHR = (((uint32_t)TxMessage->Data[7] << 24) | ((uint32_t)TxMessage->Data[6] << 16) |
+                                                     ((uint32_t)TxMessage->Data[5] << 8) | ((uint32_t)TxMessage->Data[4]));
         CANx->sTxMailBox[transmit_mailbox].TXMIR |= TMIDxR_TXRQ;
     }
 
@@ -510,21 +431,19 @@ uint8_t CAN_Transmit(CAN_TypeDef *CANx, CanTxMsg *TxMessage)
  *            CAN_TxStatus_Ok.
  *            CAN_TxStatus_Failed.
  */
-uint8_t CAN_TransmitStatus(CAN_TypeDef *CANx, uint8_t TransmitMailbox)
-{
+uint8_t CAN_TransmitStatus(CAN_TypeDef *CANx, uint8_t TransmitMailbox) {
     uint32_t state = 0;
 
-    switch(TransmitMailbox)
-    {
-        case(CAN_TXMAILBOX_0):
+    switch (TransmitMailbox) {
+        case (CAN_TXMAILBOX_0):
             state = CANx->TSTATR & (CAN_TSTATR_RQCP0 | CAN_TSTATR_TXOK0 | CAN_TSTATR_TME0);
             break;
 
-        case(CAN_TXMAILBOX_1):
+        case (CAN_TXMAILBOX_1):
             state = CANx->TSTATR & (CAN_TSTATR_RQCP1 | CAN_TSTATR_TXOK1 | CAN_TSTATR_TME1);
             break;
 
-        case(CAN_TXMAILBOX_2):
+        case (CAN_TXMAILBOX_2):
             state = CANx->TSTATR & (CAN_TSTATR_RQCP2 | CAN_TSTATR_TXOK2 | CAN_TSTATR_TME2);
             break;
 
@@ -533,33 +452,32 @@ uint8_t CAN_TransmitStatus(CAN_TypeDef *CANx, uint8_t TransmitMailbox)
             break;
     }
 
-    switch(state)
-    {
-        case(0x0):
+    switch (state) {
+        case (0x0):
             state = CAN_TxStatus_Pending;
             break;
 
-        case(CAN_TSTATR_RQCP0 | CAN_TSTATR_TME0):
+        case (CAN_TSTATR_RQCP0 | CAN_TSTATR_TME0):
             state = CAN_TxStatus_Failed;
             break;
 
-        case(CAN_TSTATR_RQCP1 | CAN_TSTATR_TME1):
+        case (CAN_TSTATR_RQCP1 | CAN_TSTATR_TME1):
             state = CAN_TxStatus_Failed;
             break;
 
-        case(CAN_TSTATR_RQCP2 | CAN_TSTATR_TME2):
+        case (CAN_TSTATR_RQCP2 | CAN_TSTATR_TME2):
             state = CAN_TxStatus_Failed;
             break;
 
-        case(CAN_TSTATR_RQCP0 | CAN_TSTATR_TXOK0 | CAN_TSTATR_TME0):
+        case (CAN_TSTATR_RQCP0 | CAN_TSTATR_TXOK0 | CAN_TSTATR_TME0):
             state = CAN_TxStatus_Ok;
             break;
 
-        case(CAN_TSTATR_RQCP1 | CAN_TSTATR_TXOK1 | CAN_TSTATR_TME1):
+        case (CAN_TSTATR_RQCP1 | CAN_TSTATR_TXOK1 | CAN_TSTATR_TME1):
             state = CAN_TxStatus_Ok;
             break;
 
-        case(CAN_TSTATR_RQCP2 | CAN_TSTATR_TXOK2 | CAN_TSTATR_TME2):
+        case (CAN_TSTATR_RQCP2 | CAN_TSTATR_TXOK2 | CAN_TSTATR_TME2):
             state = CAN_TxStatus_Ok;
             break;
 
@@ -584,19 +502,17 @@ uint8_t CAN_TransmitStatus(CAN_TypeDef *CANx, uint8_t TransmitMailbox)
  *
  * @return  none
  */
-void CAN_CancelTransmit(CAN_TypeDef *CANx, uint8_t Mailbox)
-{
-    switch(Mailbox)
-    {
-        case(CAN_TXMAILBOX_0):
+void CAN_CancelTransmit(CAN_TypeDef *CANx, uint8_t Mailbox) {
+    switch (Mailbox) {
+        case (CAN_TXMAILBOX_0):
             CANx->TSTATR |= CAN_TSTATR_ABRQ0;
             break;
 
-        case(CAN_TXMAILBOX_1):
+        case (CAN_TXMAILBOX_1):
             CANx->TSTATR |= CAN_TSTATR_ABRQ1;
             break;
 
-        case(CAN_TXMAILBOX_2):
+        case (CAN_TXMAILBOX_2):
             CANx->TSTATR |= CAN_TSTATR_ABRQ2;
             break;
 
@@ -619,16 +535,12 @@ void CAN_CancelTransmit(CAN_TypeDef *CANx, uint8_t Mailbox)
  *
  * @return  none
  */
-void CAN_Receive(CAN_TypeDef *CANx, uint8_t FIFONumber, CanRxMsg *RxMessage)
-{
+void CAN_Receive(CAN_TypeDef *CANx, uint8_t FIFONumber, CanRxMsg *RxMessage) {
     RxMessage->IDE = (uint8_t)0x04 & CANx->sFIFOMailBox[FIFONumber].RXMIR;
 
-    if(RxMessage->IDE == CAN_Id_Standard)
-    {
+    if (RxMessage->IDE == CAN_Id_Standard) {
         RxMessage->StdId = (uint32_t)0x000007FF & (CANx->sFIFOMailBox[FIFONumber].RXMIR >> 21);
-    }
-    else
-    {
+    } else {
         RxMessage->ExtId = (uint32_t)0x1FFFFFFF & (CANx->sFIFOMailBox[FIFONumber].RXMIR >> 3);
     }
 
@@ -644,12 +556,9 @@ void CAN_Receive(CAN_TypeDef *CANx, uint8_t FIFONumber, CanRxMsg *RxMessage)
     RxMessage->Data[6] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDHR >> 16);
     RxMessage->Data[7] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDHR >> 24);
 
-    if(FIFONumber == CAN_FIFO0)
-    {
+    if (FIFONumber == CAN_FIFO0) {
         CANx->RFIFO0 |= CAN_RFIFO0_RFOM0;
-    }
-    else
-    {
+    } else {
         CANx->RFIFO1 |= CAN_RFIFO1_RFOM1;
     }
 }
@@ -666,14 +575,10 @@ void CAN_Receive(CAN_TypeDef *CANx, uint8_t FIFONumber, CanRxMsg *RxMessage)
  *
  * @return  none
  */
-void CAN_FIFORelease(CAN_TypeDef *CANx, uint8_t FIFONumber)
-{
-    if(FIFONumber == CAN_FIFO0)
-    {
+void CAN_FIFORelease(CAN_TypeDef *CANx, uint8_t FIFONumber) {
+    if (FIFONumber == CAN_FIFO0) {
         CANx->RFIFO0 |= CAN_RFIFO0_RFOM0;
-    }
-    else
-    {
+    } else {
         CANx->RFIFO1 |= CAN_RFIFO1_RFOM1;
     }
 }
@@ -690,20 +595,14 @@ void CAN_FIFORelease(CAN_TypeDef *CANx, uint8_t FIFONumber)
  *
  * @return  message_pending: which is the number of pending message.
  */
-uint8_t CAN_MessagePending(CAN_TypeDef *CANx, uint8_t FIFONumber)
-{
+uint8_t CAN_MessagePending(CAN_TypeDef *CANx, uint8_t FIFONumber) {
     uint8_t message_pending = 0;
 
-    if(FIFONumber == CAN_FIFO0)
-    {
+    if (FIFONumber == CAN_FIFO0) {
         message_pending = (uint8_t)(CANx->RFIFO0 & (uint32_t)0x03);
-    }
-    else if(FIFONumber == CAN_FIFO1)
-    {
+    } else if (FIFONumber == CAN_FIFO1) {
         message_pending = (uint8_t)(CANx->RFIFO1 & (uint32_t)0x03);
-    }
-    else
-    {
+    } else {
         message_pending = 0;
     }
 
@@ -725,64 +624,44 @@ uint8_t CAN_MessagePending(CAN_TypeDef *CANx, uint8_t FIFONumber)
  *          CAN_ModeStatus_Failed - CAN failed entering the specific mode.
  *          CAN_ModeStatus_Success - CAN Succeed entering the specific mode.
  */
-uint8_t CAN_OperatingModeRequest(CAN_TypeDef *CANx, uint8_t CAN_OperatingMode)
-{
-    uint8_t  status = CAN_ModeStatus_Failed;
+uint8_t CAN_OperatingModeRequest(CAN_TypeDef *CANx, uint8_t CAN_OperatingMode) {
+    uint8_t status = CAN_ModeStatus_Failed;
     uint32_t timeout = INAK_TIMEOUT;
 
-    if(CAN_OperatingMode == CAN_OperatingMode_Initialization)
-    {
+    if (CAN_OperatingMode == CAN_OperatingMode_Initialization) {
         CANx->CTLR = (uint32_t)((CANx->CTLR & (uint32_t)(~(uint32_t)CAN_CTLR_SLEEP)) | CAN_CTLR_INRQ);
 
-        while(((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_INAK) && (timeout != 0))
-        {
+        while (((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_INAK) && (timeout != 0)) {
             timeout--;
         }
-        if((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_INAK)
-        {
+        if ((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_INAK) {
             status = CAN_ModeStatus_Failed;
-        }
-        else
-        {
+        } else {
             status = CAN_ModeStatus_Success;
         }
-    }
-    else if(CAN_OperatingMode == CAN_OperatingMode_Normal)
-    {
+    } else if (CAN_OperatingMode == CAN_OperatingMode_Normal) {
         CANx->CTLR &= (uint32_t)(~(CAN_CTLR_SLEEP | CAN_CTLR_INRQ));
 
-        while(((CANx->STATR & CAN_MODE_MASK) != 0) && (timeout != 0))
-        {
+        while (((CANx->STATR & CAN_MODE_MASK) != 0) && (timeout != 0)) {
             timeout--;
         }
-        if((CANx->STATR & CAN_MODE_MASK) != 0)
-        {
+        if ((CANx->STATR & CAN_MODE_MASK) != 0) {
             status = CAN_ModeStatus_Failed;
-        }
-        else
-        {
+        } else {
             status = CAN_ModeStatus_Success;
         }
-    }
-    else if(CAN_OperatingMode == CAN_OperatingMode_Sleep)
-    {
+    } else if (CAN_OperatingMode == CAN_OperatingMode_Sleep) {
         CANx->CTLR = (uint32_t)((CANx->CTLR & (uint32_t)(~(uint32_t)CAN_CTLR_INRQ)) | CAN_CTLR_SLEEP);
 
-        while(((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_SLAK) && (timeout != 0))
-        {
+        while (((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_SLAK) && (timeout != 0)) {
             timeout--;
         }
-        if((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_SLAK)
-        {
+        if ((CANx->STATR & CAN_MODE_MASK) != CAN_STATR_SLAK) {
             status = CAN_ModeStatus_Failed;
-        }
-        else
-        {
+        } else {
             status = CAN_ModeStatus_Success;
         }
-    }
-    else
-    {
+    } else {
         status = CAN_ModeStatus_Failed;
     }
 
@@ -800,14 +679,12 @@ uint8_t CAN_OperatingModeRequest(CAN_TypeDef *CANx, uint8_t CAN_OperatingMode)
  *            CAN_Sleep_Ok.
  *            CAN_Sleep_Failed.
  */
-uint8_t CAN_Sleep(CAN_TypeDef *CANx)
-{
+uint8_t CAN_Sleep(CAN_TypeDef *CANx) {
     uint8_t sleepstatus = CAN_Sleep_Failed;
 
     CANx->CTLR = (((CANx->CTLR) & (uint32_t)(~(uint32_t)CAN_CTLR_INRQ)) | CAN_CTLR_SLEEP);
 
-    if((CANx->STATR & (CAN_STATR_SLAK | CAN_STATR_INAK)) == CAN_STATR_SLAK)
-    {
+    if ((CANx->STATR & (CAN_STATR_SLAK | CAN_STATR_INAK)) == CAN_STATR_SLAK) {
         sleepstatus = CAN_Sleep_Ok;
     }
 
@@ -825,19 +702,16 @@ uint8_t CAN_Sleep(CAN_TypeDef *CANx)
  *            CAN_WakeUp_Ok.
  *            CAN_WakeUp_Failed.
  */
-uint8_t CAN_WakeUp(CAN_TypeDef *CANx)
-{
+uint8_t CAN_WakeUp(CAN_TypeDef *CANx) {
     uint32_t wait_slak = SLAK_TIMEOUT;
-    uint8_t  wakeupstatus = CAN_WakeUp_Failed;
+    uint8_t wakeupstatus = CAN_WakeUp_Failed;
 
     CANx->CTLR &= ~(uint32_t)CAN_CTLR_SLEEP;
 
-    while(((CANx->STATR & CAN_STATR_SLAK) == CAN_STATR_SLAK) && (wait_slak != 0x00))
-    {
+    while (((CANx->STATR & CAN_STATR_SLAK) == CAN_STATR_SLAK) && (wait_slak != 0x00)) {
         wait_slak--;
     }
-    if((CANx->STATR & CAN_STATR_SLAK) != CAN_STATR_SLAK)
-    {
+    if ((CANx->STATR & CAN_STATR_SLAK) != CAN_STATR_SLAK) {
         wakeupstatus = CAN_WakeUp_Ok;
     }
 
@@ -861,8 +735,7 @@ uint8_t CAN_WakeUp(CAN_TypeDef *CANx)
  *            CAN_ErrorCode_CRCErr - CRC Error.
  *            CAN_ErrorCode_SoftwareSetErr - Software Set Error.
  */
-uint8_t CAN_GetLastErrorCode(CAN_TypeDef *CANx)
-{
+uint8_t CAN_GetLastErrorCode(CAN_TypeDef *CANx) {
     uint8_t errorcode = 0;
 
     errorcode = (((uint8_t)CANx->ERRSR) & (uint8_t)CAN_ERRSR_LEC);
@@ -876,17 +749,16 @@ uint8_t CAN_GetLastErrorCode(CAN_TypeDef *CANx)
  * @brief   Returns the CANx Receive Error Counter (REC).
  *
  * @param   CANx - where x can be 1 to select the CAN peripheral.
- *         Note-   
- *         In case of an error during reception, this counter is incremented 
- *         by 1 or by 8 depending on the error condition as defined by the CAN 
- *         standard. After every successful reception, the counter is 
- *         decremented by 1 or reset to 120 if its value was higher than 128. 
- *         When the counter value exceeds 127, the CAN controller enters the 
- *         error passive state.  
+ *         Note-
+ *         In case of an error during reception, this counter is incremented
+ *         by 1 or by 8 depending on the error condition as defined by the CAN
+ *         standard. After every successful reception, the counter is
+ *         decremented by 1 or reset to 120 if its value was higher than 128.
+ *         When the counter value exceeds 127, the CAN controller enters the
+ *         error passive state.
  * @return  counter - CAN Receive Error Counter.
  */
-uint8_t CAN_GetReceiveErrorCounter(CAN_TypeDef *CANx)
-{
+uint8_t CAN_GetReceiveErrorCounter(CAN_TypeDef *CANx) {
     uint8_t counter = 0;
 
     counter = (uint8_t)((CANx->ERRSR & CAN_ERRSR_REC) >> 24);
@@ -903,8 +775,7 @@ uint8_t CAN_GetReceiveErrorCounter(CAN_TypeDef *CANx)
  *
  * @return  counter - LSB of the 9-bit CAN Transmit Error Counter.
  */
-uint8_t CAN_GetLSBTransmitErrorCounter(CAN_TypeDef *CANx)
-{
+uint8_t CAN_GetLSBTransmitErrorCounter(CAN_TypeDef *CANx) {
     uint8_t counter = 0;
 
     counter = (uint8_t)((CANx->ERRSR & CAN_ERRSR_TEC) >> 16);
@@ -936,14 +807,10 @@ uint8_t CAN_GetLSBTransmitErrorCounter(CAN_TypeDef *CANx)
  *
  * @return  counter - LSB of the 9-bit CAN Transmit Error Counter.
  */
-void CAN_ITConfig(CAN_TypeDef *CANx, uint32_t CAN_IT, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void CAN_ITConfig(CAN_TypeDef *CANx, uint32_t CAN_IT, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         CANx->INTENR |= CAN_IT;
-    }
-    else
-    {
+    } else {
         CANx->INTENR &= ~CAN_IT;
     }
 }
@@ -974,62 +841,37 @@ void CAN_ITConfig(CAN_TypeDef *CANx, uint32_t CAN_IT, FunctionalState NewState)
  *
  * @return  FlagStatus - SET or RESET.
  */
-FlagStatus CAN_GetFlagStatus(CAN_TypeDef *CANx, uint32_t CAN_FLAG)
-{
+FlagStatus CAN_GetFlagStatus(CAN_TypeDef *CANx, uint32_t CAN_FLAG) {
     FlagStatus bitstatus = RESET;
 
-    if((CAN_FLAG & CAN_FLAGS_ERRSR) != (uint32_t)RESET)
-    {
-        if((CANx->ERRSR & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET)
-        {
+    if ((CAN_FLAG & CAN_FLAGS_ERRSR) != (uint32_t)RESET) {
+        if ((CANx->ERRSR & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET) {
             bitstatus = SET;
-        }
-        else
-        {
+        } else {
             bitstatus = RESET;
         }
-    }
-    else if((CAN_FLAG & CAN_FLAGS_STATR) != (uint32_t)RESET)
-    {
-        if((CANx->STATR & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET)
-        {
+    } else if ((CAN_FLAG & CAN_FLAGS_STATR) != (uint32_t)RESET) {
+        if ((CANx->STATR & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET) {
             bitstatus = SET;
-        }
-        else
-        {
+        } else {
             bitstatus = RESET;
         }
-    }
-    else if((CAN_FLAG & CAN_FLAGS_TSTATR) != (uint32_t)RESET)
-    {
-        if((CANx->TSTATR & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET)
-        {
+    } else if ((CAN_FLAG & CAN_FLAGS_TSTATR) != (uint32_t)RESET) {
+        if ((CANx->TSTATR & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET) {
             bitstatus = SET;
-        }
-        else
-        {
+        } else {
             bitstatus = RESET;
         }
-    }
-    else if((CAN_FLAG & CAN_FLAGS_RFIFO0) != (uint32_t)RESET)
-    {
-        if((CANx->RFIFO0 & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET)
-        {
+    } else if ((CAN_FLAG & CAN_FLAGS_RFIFO0) != (uint32_t)RESET) {
+        if ((CANx->RFIFO0 & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET) {
             bitstatus = SET;
-        }
-        else
-        {
+        } else {
             bitstatus = RESET;
         }
-    }
-    else
-    {
-        if((uint32_t)(CANx->RFIFO1 & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET)
-        {
+    } else {
+        if ((uint32_t)(CANx->RFIFO1 & (CAN_FLAG & 0x000FFFFF)) != (uint32_t)RESET) {
             bitstatus = SET;
-        }
-        else
-        {
+        } else {
             bitstatus = RESET;
         }
     }
@@ -1057,32 +899,21 @@ FlagStatus CAN_GetFlagStatus(CAN_TypeDef *CANx, uint32_t CAN_FLAG)
  *
  * @return  none
  */
-void CAN_ClearFlag(CAN_TypeDef *CANx, uint32_t CAN_FLAG)
-{
+void CAN_ClearFlag(CAN_TypeDef *CANx, uint32_t CAN_FLAG) {
     uint32_t flagtmp = 0;
 
-    if(CAN_FLAG == CAN_FLAG_LEC)
-    {
+    if (CAN_FLAG == CAN_FLAG_LEC) {
         CANx->ERRSR = (uint32_t)RESET;
-    }
-    else
-    {
+    } else {
         flagtmp = CAN_FLAG & 0x000FFFFF;
 
-        if((CAN_FLAG & CAN_FLAGS_RFIFO0) != (uint32_t)RESET)
-        {
+        if ((CAN_FLAG & CAN_FLAGS_RFIFO0) != (uint32_t)RESET) {
             CANx->RFIFO0 = (uint32_t)(flagtmp);
-        }
-        else if((CAN_FLAG & CAN_FLAGS_RFIFO1) != (uint32_t)RESET)
-        {
+        } else if ((CAN_FLAG & CAN_FLAGS_RFIFO1) != (uint32_t)RESET) {
             CANx->RFIFO1 = (uint32_t)(flagtmp);
-        }
-        else if((CAN_FLAG & CAN_FLAGS_TSTATR) != (uint32_t)RESET)
-        {
+        } else if ((CAN_FLAG & CAN_FLAGS_TSTATR) != (uint32_t)RESET) {
             CANx->TSTATR = (uint32_t)(flagtmp);
-        }
-        else
-        {
+        } else {
             CANx->STATR = (uint32_t)(flagtmp);
         }
     }
@@ -1112,14 +943,11 @@ void CAN_ClearFlag(CAN_TypeDef *CANx, uint32_t CAN_FLAG)
  *
  * @return  ITStatus - SET or RESET.
  */
-ITStatus CAN_GetITStatus(CAN_TypeDef *CANx, uint32_t CAN_IT)
-{
+ITStatus CAN_GetITStatus(CAN_TypeDef *CANx, uint32_t CAN_IT) {
     ITStatus itstatus = RESET;
 
-    if((CANx->INTENR & CAN_IT) != RESET)
-    {
-        switch(CAN_IT)
-        {
+    if ((CANx->INTENR & CAN_IT) != RESET) {
+        switch (CAN_IT) {
             case CAN_IT_TME:
                 itstatus = CheckITStatus(CANx->TSTATR, CAN_TSTATR_RQCP0 | CAN_TSTATR_RQCP1 | CAN_TSTATR_RQCP2);
                 break;
@@ -1180,9 +1008,7 @@ ITStatus CAN_GetITStatus(CAN_TypeDef *CANx, uint32_t CAN_IT)
                 itstatus = RESET;
                 break;
         }
-    }
-    else
-    {
+    } else {
         itstatus = RESET;
     }
 
@@ -1211,10 +1037,8 @@ ITStatus CAN_GetITStatus(CAN_TypeDef *CANx, uint32_t CAN_IT)
  *
  * @return  none
  */
-void CAN_ClearITPendingBit(CAN_TypeDef *CANx, uint32_t CAN_IT)
-{
-    switch(CAN_IT)
-    {
+void CAN_ClearITPendingBit(CAN_TypeDef *CANx, uint32_t CAN_IT) {
+    switch (CAN_IT) {
         case CAN_IT_TME:
             CANx->TSTATR = CAN_TSTATR_RQCP0 | CAN_TSTATR_RQCP1 | CAN_TSTATR_RQCP2;
             break;
@@ -1280,16 +1104,12 @@ void CAN_ClearITPendingBit(CAN_TypeDef *CANx, uint32_t CAN_IT)
  *
  * @return  ITStatus - SET or RESET.
  */
-static ITStatus CheckITStatus(uint32_t CAN_Reg, uint32_t It_Bit)
-{
+static ITStatus CheckITStatus(uint32_t CAN_Reg, uint32_t It_Bit) {
     ITStatus pendingbitstatus = RESET;
 
-    if((CAN_Reg & It_Bit) != (uint32_t)RESET)
-    {
+    if ((CAN_Reg & It_Bit) != (uint32_t)RESET) {
         pendingbitstatus = SET;
-    }
-    else
-    {
+    } else {
         pendingbitstatus = RESET;
     }
 

@@ -1,0 +1,8 @@
+BasedOnStyle: Google
+ColumnLimit: 150
+IndentWidth: 4
+# UseTab: Never
+# AllowShortIfStatementsOnASingleLine: false
+# AllowShortLoopsOnASingleLine: false
+# BreakBeforeBraces: Attach
+# ContinuationIndentWidth: 4

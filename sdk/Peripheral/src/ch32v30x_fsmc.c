@@ -1,28 +1,29 @@
 /********************************** (C) COPYRIGHT  *******************************
-* File Name          : ch32v30x_fsmc.c
-* Author             : WCH
-* Version            : V1.0.1
-* Date               : 2025/04/06
-* Description        : This file provides all the FSMC firmware functions.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_fsmc.h"
-#include "ch32v30x_rcc.h"
+ * File Name          : ch32v30x_fsmc.c
+ * Author             : WCH
+ * Version            : V1.0.1
+ * Date               : 2025/04/06
+ * Description        : This file provides all the FSMC firmware functions.
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_fsmc.h"
+
+#include "../inc/ch32v30x_rcc.h"
 
 /* FSMC BCRx Mask */
-#define BCR_MBKEN_Set          ((uint32_t)0x00000001)
-#define BCR_MBKEN_Reset        ((uint32_t)0x000FFFFE)
-#define BCR_FACCEN_Set         ((uint32_t)0x00000040)
+#define BCR_MBKEN_Set ((uint32_t)0x00000001)
+#define BCR_MBKEN_Reset ((uint32_t)0x000FFFFE)
+#define BCR_FACCEN_Set ((uint32_t)0x00000040)
 
 /* FSMC PCRx Mask */
-#define PCR_PBKEN_Set          ((uint32_t)0x00000004)
-#define PCR_PBKEN_Reset        ((uint32_t)0x000FFFFB)
-#define PCR_ECCEN_Set          ((uint32_t)0x00000040)
-#define PCR_ECCEN_Reset        ((uint32_t)0x000FFFBF)
-#define PCR_MemoryType_NAND    ((uint32_t)0x00000008)
+#define PCR_PBKEN_Set ((uint32_t)0x00000004)
+#define PCR_PBKEN_Reset ((uint32_t)0x000FFFFB)
+#define PCR_ECCEN_Set ((uint32_t)0x00000040)
+#define PCR_ECCEN_Reset ((uint32_t)0x000FFFBF)
+#define PCR_MemoryType_NAND ((uint32_t)0x00000008)
 
 /*********************************************************************
  * @fn      FSMC_NORSRAMDeInit
@@ -35,14 +36,10 @@
  *
  * @return  none
  */
-void FSMC_NORSRAMDeInit(uint32_t FSMC_Bank)
-{
-    if(FSMC_Bank == FSMC_Bank1_NORSRAM1)
-    {
+void FSMC_NORSRAMDeInit(uint32_t FSMC_Bank) {
+    if (FSMC_Bank == FSMC_Bank1_NORSRAM1) {
         FSMC_Bank1->BTCR[FSMC_Bank] = 0x000030DB;
-    }
-    else
-    {
+    } else {
         FSMC_Bank1->BTCR[FSMC_Bank] = 0x000030D2;
     }
     FSMC_Bank1->BTCR[FSMC_Bank + 1] = 0x0FFFFFFF;
@@ -60,10 +57,8 @@ void FSMC_NORSRAMDeInit(uint32_t FSMC_Bank)
  *
  * @return  none
  */
-void FSMC_NANDDeInit(uint32_t FSMC_Bank)
-{
-    if(FSMC_Bank == FSMC_Bank2_NAND)
-    {
+void FSMC_NANDDeInit(uint32_t FSMC_Bank) {
+    if (FSMC_Bank == FSMC_Bank2_NAND) {
         FSMC_Bank2->PCR2 = 0x00000018;
         FSMC_Bank2->SR2 = 0x00000040;
         FSMC_Bank2->PMEM2 = 0xFCFCFCFC;
@@ -83,45 +78,32 @@ void FSMC_NANDDeInit(uint32_t FSMC_Bank)
  *
  * @return  none
  */
-void FSMC_NORSRAMInit(FSMC_NORSRAMInitTypeDef *FSMC_NORSRAMInitStruct)
-{
+void FSMC_NORSRAMInit(FSMC_NORSRAMInitTypeDef *FSMC_NORSRAMInitStruct) {
     FSMC_Bank1->BTCR[FSMC_NORSRAMInitStruct->FSMC_Bank] =
-        (uint32_t)FSMC_NORSRAMInitStruct->FSMC_DataAddressMux |
-        FSMC_NORSRAMInitStruct->FSMC_MemoryType |
-        FSMC_NORSRAMInitStruct->FSMC_MemoryDataWidth |
-        FSMC_NORSRAMInitStruct->FSMC_BurstAccessMode |
-        FSMC_NORSRAMInitStruct->FSMC_AsynchronousWait |
-        FSMC_NORSRAMInitStruct->FSMC_WaitSignalPolarity |
-        FSMC_NORSRAMInitStruct->FSMC_WaitSignalActive |
-        FSMC_NORSRAMInitStruct->FSMC_WriteOperation |
-        FSMC_NORSRAMInitStruct->FSMC_WaitSignal |
-        FSMC_NORSRAMInitStruct->FSMC_ExtendedMode |
+        (uint32_t)FSMC_NORSRAMInitStruct->FSMC_DataAddressMux | FSMC_NORSRAMInitStruct->FSMC_MemoryType |
+        FSMC_NORSRAMInitStruct->FSMC_MemoryDataWidth | FSMC_NORSRAMInitStruct->FSMC_BurstAccessMode | FSMC_NORSRAMInitStruct->FSMC_AsynchronousWait |
+        FSMC_NORSRAMInitStruct->FSMC_WaitSignalPolarity | FSMC_NORSRAMInitStruct->FSMC_WaitSignalActive |
+        FSMC_NORSRAMInitStruct->FSMC_WriteOperation | FSMC_NORSRAMInitStruct->FSMC_WaitSignal | FSMC_NORSRAMInitStruct->FSMC_ExtendedMode |
         FSMC_NORSRAMInitStruct->FSMC_WriteBurst;
 
-    if(FSMC_NORSRAMInitStruct->FSMC_MemoryType == FSMC_MemoryType_NOR)
-    {
+    if (FSMC_NORSRAMInitStruct->FSMC_MemoryType == FSMC_MemoryType_NOR) {
         FSMC_Bank1->BTCR[FSMC_NORSRAMInitStruct->FSMC_Bank] |= (uint32_t)BCR_FACCEN_Set;
     }
 
-    FSMC_Bank1->BTCR[FSMC_NORSRAMInitStruct->FSMC_Bank + 1] =
-        (uint32_t)FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_AddressSetupTime |
-        (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_AddressHoldTime << 4) |
-        (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_DataSetupTime << 8) |
-        (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_BusTurnAroundDuration << 16) |
-        (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_CLKDivision << 20) |
-        (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_DataLatency << 24) |
-        FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_AccessMode;
+    FSMC_Bank1->BTCR[FSMC_NORSRAMInitStruct->FSMC_Bank + 1] = (uint32_t)FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_AddressSetupTime |
+                                                              (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_AddressHoldTime << 4) |
+                                                              (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_DataSetupTime << 8) |
+                                                              (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_BusTurnAroundDuration << 16) |
+                                                              (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_CLKDivision << 20) |
+                                                              (FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_DataLatency << 24) |
+                                                              FSMC_NORSRAMInitStruct->FSMC_ReadWriteTimingStruct->FSMC_AccessMode;
 
-    if(FSMC_NORSRAMInitStruct->FSMC_ExtendedMode == FSMC_ExtendedMode_Enable)
-    {
-        FSMC_Bank1E->BWTR[FSMC_NORSRAMInitStruct->FSMC_Bank] =
-            (uint32_t)FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_AddressSetupTime |
-            (FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_AddressHoldTime << 4) |
-            (FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_DataSetupTime << 8) |
-            FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_AccessMode;
-    }
-    else
-    {
+    if (FSMC_NORSRAMInitStruct->FSMC_ExtendedMode == FSMC_ExtendedMode_Enable) {
+        FSMC_Bank1E->BWTR[FSMC_NORSRAMInitStruct->FSMC_Bank] = (uint32_t)FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_AddressSetupTime |
+                                                               (FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_AddressHoldTime << 4) |
+                                                               (FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_DataSetupTime << 8) |
+                                                               FSMC_NORSRAMInitStruct->FSMC_WriteTimingStruct->FSMC_AccessMode;
+    } else {
         FSMC_Bank1E->BWTR[FSMC_NORSRAMInitStruct->FSMC_Bank] = 0x0FFFFFFF;
     }
 }
@@ -138,16 +120,11 @@ void FSMC_NORSRAMInit(FSMC_NORSRAMInitTypeDef *FSMC_NORSRAMInitStruct)
  *
  * @return  none
  */
-void FSMC_NANDInit(FSMC_NANDInitTypeDef *FSMC_NANDInitStruct)
-{
+void FSMC_NANDInit(FSMC_NANDInitTypeDef *FSMC_NANDInitStruct) {
     uint32_t tmppcr = 0x00000000, tmppmem = 0x00000000, tmppatt = 0x00000000;
 
-    tmppcr = (uint32_t)FSMC_NANDInitStruct->FSMC_Waitfeature |
-             PCR_MemoryType_NAND |
-             FSMC_NANDInitStruct->FSMC_MemoryDataWidth |
-             FSMC_NANDInitStruct->FSMC_ECC |
-             FSMC_NANDInitStruct->FSMC_ECCPageSize |
-             (FSMC_NANDInitStruct->FSMC_TCLRSetupTime << 9) |
+    tmppcr = (uint32_t)FSMC_NANDInitStruct->FSMC_Waitfeature | PCR_MemoryType_NAND | FSMC_NANDInitStruct->FSMC_MemoryDataWidth |
+             FSMC_NANDInitStruct->FSMC_ECC | FSMC_NANDInitStruct->FSMC_ECCPageSize | (FSMC_NANDInitStruct->FSMC_TCLRSetupTime << 9) |
              (FSMC_NANDInitStruct->FSMC_TARSetupTime << 13);
 
     tmppmem = (uint32_t)FSMC_NANDInitStruct->FSMC_CommonSpaceTimingStruct->FSMC_SetupTime |
@@ -160,8 +137,7 @@ void FSMC_NANDInit(FSMC_NANDInitTypeDef *FSMC_NANDInitStruct)
               (FSMC_NANDInitStruct->FSMC_AttributeSpaceTimingStruct->FSMC_HoldSetupTime << 16) |
               (FSMC_NANDInitStruct->FSMC_AttributeSpaceTimingStruct->FSMC_HiZSetupTime << 24);
 
-    if(FSMC_NANDInitStruct->FSMC_Bank == FSMC_Bank2_NAND)
-    {
+    if (FSMC_NANDInitStruct->FSMC_Bank == FSMC_Bank2_NAND) {
         FSMC_Bank2->PCR2 = tmppcr;
         FSMC_Bank2->PMEM2 = tmppmem;
         FSMC_Bank2->PATT2 = tmppatt;
@@ -178,8 +154,7 @@ void FSMC_NANDInit(FSMC_NANDInitTypeDef *FSMC_NANDInitStruct)
  *
  * @return  none
  */
-void FSMC_NORSRAMStructInit(FSMC_NORSRAMInitTypeDef *FSMC_NORSRAMInitStruct)
-{
+void FSMC_NORSRAMStructInit(FSMC_NORSRAMInitTypeDef *FSMC_NORSRAMInitStruct) {
     FSMC_NORSRAMInitStruct->FSMC_Bank = FSMC_Bank1_NORSRAM1;
     FSMC_NORSRAMInitStruct->FSMC_DataAddressMux = FSMC_DataAddressMux_Enable;
     FSMC_NORSRAMInitStruct->FSMC_MemoryType = FSMC_MemoryType_SRAM;
@@ -216,8 +191,7 @@ void FSMC_NORSRAMStructInit(FSMC_NORSRAMInitTypeDef *FSMC_NORSRAMInitStruct)
  *
  * @return  none
  */
-void FSMC_NANDStructInit(FSMC_NANDInitTypeDef *FSMC_NANDInitStruct)
-{
+void FSMC_NANDStructInit(FSMC_NANDInitTypeDef *FSMC_NANDInitStruct) {
     FSMC_NANDInitStruct->FSMC_Bank = FSMC_Bank2_NAND;
     FSMC_NANDInitStruct->FSMC_Waitfeature = FSMC_Waitfeature_Disable;
     FSMC_NANDInitStruct->FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_8b;
@@ -249,14 +223,10 @@ void FSMC_NANDStructInit(FSMC_NANDInitTypeDef *FSMC_NANDInitStruct)
  *
  * @return  none
  */
-void FSMC_NORSRAMCmd(uint32_t FSMC_Bank, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void FSMC_NORSRAMCmd(uint32_t FSMC_Bank, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         FSMC_Bank1->BTCR[FSMC_Bank] |= BCR_MBKEN_Set;
-    }
-    else
-    {
+    } else {
         FSMC_Bank1->BTCR[FSMC_Bank] &= BCR_MBKEN_Reset;
     }
 }
@@ -272,19 +242,13 @@ void FSMC_NORSRAMCmd(uint32_t FSMC_Bank, FunctionalState NewState)
  *
  * @return  none
  */
-void FSMC_NANDCmd(uint32_t FSMC_Bank, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
-        if(FSMC_Bank == FSMC_Bank2_NAND)
-        {
+void FSMC_NANDCmd(uint32_t FSMC_Bank, FunctionalState NewState) {
+    if (NewState != DISABLE) {
+        if (FSMC_Bank == FSMC_Bank2_NAND) {
             FSMC_Bank2->PCR2 |= PCR_PBKEN_Set;
         }
-    }
-    else
-    {
-        if(FSMC_Bank == FSMC_Bank2_NAND)
-        {
+    } else {
+        if (FSMC_Bank == FSMC_Bank2_NAND) {
             FSMC_Bank2->PCR2 &= PCR_PBKEN_Reset;
         }
     }
@@ -301,19 +265,13 @@ void FSMC_NANDCmd(uint32_t FSMC_Bank, FunctionalState NewState)
  *
  * @return  none
  */
-void FSMC_NANDECCCmd(uint32_t FSMC_Bank, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
-        if(FSMC_Bank == FSMC_Bank2_NAND)
-        {
+void FSMC_NANDECCCmd(uint32_t FSMC_Bank, FunctionalState NewState) {
+    if (NewState != DISABLE) {
+        if (FSMC_Bank == FSMC_Bank2_NAND) {
             FSMC_Bank2->PCR2 |= PCR_ECCEN_Set;
         }
-    }
-    else
-    {
-        if(FSMC_Bank == FSMC_Bank2_NAND)
-        {
+    } else {
+        if (FSMC_Bank == FSMC_Bank2_NAND) {
             FSMC_Bank2->PCR2 &= PCR_ECCEN_Reset;
         }
     }
@@ -330,12 +288,10 @@ void FSMC_NANDECCCmd(uint32_t FSMC_Bank, FunctionalState NewState)
  *
  * @return  eccval - The Error Correction Code (ECC) value.
  */
-uint32_t FSMC_GetECC(uint32_t FSMC_Bank)
-{
+uint32_t FSMC_GetECC(uint32_t FSMC_Bank) {
     uint32_t eccval = 0x00000000;
 
-    if(FSMC_Bank == FSMC_Bank2_NAND)
-    {
+    if (FSMC_Bank == FSMC_Bank2_NAND) {
         eccval = FSMC_Bank2->ECCR2;
     }
 
@@ -355,22 +311,17 @@ uint32_t FSMC_GetECC(uint32_t FSMC_Bank)
  *
  * @return  FlagStatus - The new state of FSMC_FLAG (SET or RESET).
  */
-FlagStatus FSMC_GetFlagStatus(uint32_t FSMC_Bank, uint32_t FSMC_FLAG)
-{
+FlagStatus FSMC_GetFlagStatus(uint32_t FSMC_Bank, uint32_t FSMC_FLAG) {
     FlagStatus bitstatus = RESET;
-    uint32_t   tmpsr = 0x00000000;
+    uint32_t tmpsr = 0x00000000;
 
-    if(FSMC_Bank == FSMC_Bank2_NAND)
-    {
+    if (FSMC_Bank == FSMC_Bank2_NAND) {
         tmpsr = FSMC_Bank2->SR2;
     }
 
-    if((tmpsr & FSMC_FLAG) != (uint16_t)RESET)
-    {
+    if ((tmpsr & FSMC_FLAG) != (uint16_t)RESET) {
         bitstatus = SET;
-    }
-    else
-    {
+    } else {
         bitstatus = RESET;
     }
 

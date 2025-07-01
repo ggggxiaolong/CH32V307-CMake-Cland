@@ -5,10 +5,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 cmake_minimum_required(VERSION 3.20)
 
 # 工具链设置
-set(TOOLPATH  /home/MrTan/Documents/ch32_toolchain/riscv_gcc/bin/riscv-none-embed-)
+set(TOOLPATH /home/MrTan/Documents/ch32_toolchain/riscv_gcc12/bin/riscv-wch-elf-)
 
-if (WIN32)
-	MESSAGE(STATUS "Now is windows!")
+if(WIN32)
+    MESSAGE(STATUS "Now is windows!")
     set(CMAKE_C_COMPILER ${TOOLPATH}gcc.exe)
     set(CMAKE_CXX_COMPILER ${TOOLPATH}g++.exe)
     set(CMAKE_ASM_COMPILER ${TOOLPATH}gcc.exe)
@@ -16,8 +16,8 @@ if (WIN32)
     set(CMAKE_OBJCOPY ${TOOLPATH}objcopy.exe)
     set(CMAKE_OBJDUMP ${TOOLPATH}objdump.exe)
     set(SIZE ${TOOLPATH}size.exe)
-elseif (UNIX)
-	MESSAGE(STATUS "Now is UNIX-like OS!")
+elseif(UNIX)
+    MESSAGE(STATUS "Now is UNIX-like OS!")
     set(CMAKE_C_COMPILER ${TOOLPATH}gcc)
     set(CMAKE_CXX_COMPILER ${TOOLPATH}g++)
     set(CMAKE_ASM_COMPILER ${TOOLPATH}gcc)
@@ -25,14 +25,17 @@ elseif (UNIX)
     set(CMAKE_OBJCOPY ${TOOLPATH}objcopy)
     set(CMAKE_OBJDUMP ${TOOLPATH}objdump)
     set(SIZE ${TOOLPATH}size)
-else ()
+else()
     MESSAGE(STATUS "Unsupported system!")
-endif ()
+endif()
 
 # 项目设置
 project(ch32v307-ninja C CXX ASM)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 # 编译参数 一般不用改
 add_compile_options(-march=rv32imafc -mabi=ilp32f -mcmodel=medany -msmall-data-limit=8 -mno-save-restore)
@@ -45,37 +48,42 @@ add_compile_options(-O2)
 add_compile_options(-Wall)
 
 # 头文件路径
-include_directories(APP Debug)
+include_directories(
+    APP
+    # Debug
+)
 
 # 宏定义
-# add_definitions(-DDEBUG=1)
+add_definitions(-DCH32V307=1 -DCH32V30X=1 -DUSE_CH32V3_STD_SDK=1)
 
 # 添加子目录以包含模块
 add_subdirectory(sdk)
+add_subdirectory(core)
+add_subdirectory(hal)
 
 # 源码文件
-file(GLOB_RECURSE SOURCES 
-                "APP/*.c"
-                "APP/*.cpp"
-                "Debug/debug.c" 
-                "sdk/Startup/startup_ch32v30x_D8C.S"
-                )
+file(GLOB_RECURSE SOURCES
+    "APP/*.c"
+    "APP/*.cpp"
+    # "Debug/debug.c"
+    "sdk/Startup/startup_ch32v30x_D8C.S"
+)
 
 # 链接参数
-set(LINKER_SCRIPT  ${CMAKE_SOURCE_DIR}/sdk/Ld/Link.ld)
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/sdk/Ld/Link.ld)
 add_link_options(
-                -march=rv32imafc -mabi=ilp32f
-	            -nostartfiles 
-                -Xlinker --gc-sections  
-                -Wl,--print-memory-usage
-                -Wl,-Map,${PROJECT_NAME}.map 
-                --specs=nano.specs 
-                --specs=nosys.specs)
+    -march=rv32imafc -mabi=ilp32f
+    -nostartfiles
+    -Xlinker --gc-sections
+    -Wl,--print-memory-usage
+    -Wl,-Map,${PROJECT_NAME}.map
+    --specs=nano.specs
+    --specs=nosys.specs)
 add_link_options(-T ${LINKER_SCRIPT})
 
 # 编译可执行文件
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
-target_link_libraries(${PROJECT_NAME}.elf PRIVATE sdk)
+target_link_libraries(${PROJECT_NAME}.elf PRIVATE sdk core hal)
 
 # 链接静态库
 # target_link_libraries(${PROJECT_NAME}.elf printfloat)
@@ -85,8 +93,8 @@ set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 set(LST_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.lst)
 add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
-        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
-        COMMAND ${CMAKE_OBJDUMP} --all-headers --demangle --disassemble $<TARGET_FILE:${PROJECT_NAME}.elf> > ${LST_FILE}
-        COMMAND ${SIZE} --format=berkeley $<TARGET_FILE:${PROJECT_NAME}.elf>
+    COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
+    COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
+    COMMAND ${CMAKE_OBJDUMP} --all-headers --demangle --disassemble $<TARGET_FILE:${PROJECT_NAME}.elf> > ${LST_FILE}
+    COMMAND ${SIZE} --format=berkeley $<TARGET_FILE:${PROJECT_NAME}.elf>
 )

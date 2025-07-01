@@ -1,19 +1,19 @@
 /********************************** (C) COPYRIGHT  *******************************
-* File Name          : ch32v30x_iwdg.c
-* Author             : WCH
-* Version            : V1.0.0
-* Date               : 2024/03/06
-* Description        : This file provides all the IWDG firmware functions.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_iwdg.h"
+ * File Name          : ch32v30x_iwdg.c
+ * Author             : WCH
+ * Version            : V1.0.0
+ * Date               : 2024/03/06
+ * Description        : This file provides all the IWDG firmware functions.
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_iwdg.h"
 
 /* CTLR register bit mask */
-#define CTLR_KEY_Reload    ((uint16_t)0xAAAA)
-#define CTLR_KEY_Enable    ((uint16_t)0xCCCC)
+#define CTLR_KEY_Reload ((uint16_t)0xAAAA)
+#define CTLR_KEY_Enable ((uint16_t)0xCCCC)
 
 /*********************************************************************
  * @fn      IWDG_WriteAccessCmd
@@ -29,10 +29,7 @@
  *
  * @return  none
  */
-void IWDG_WriteAccessCmd(uint16_t IWDG_WriteAccess)
-{
-    IWDG->CTLR = IWDG_WriteAccess;
-}
+void IWDG_WriteAccessCmd(uint16_t IWDG_WriteAccess) { IWDG->CTLR = IWDG_WriteAccess; }
 
 /*********************************************************************
  * @fn      IWDG_SetPrescaler
@@ -50,10 +47,7 @@ void IWDG_WriteAccessCmd(uint16_t IWDG_WriteAccess)
  *
  * @return  none
  */
-void IWDG_SetPrescaler(uint8_t IWDG_Prescaler)
-{
-    IWDG->PSCR = IWDG_Prescaler;
-}
+void IWDG_SetPrescaler(uint8_t IWDG_Prescaler) { IWDG->PSCR = IWDG_Prescaler; }
 
 /*********************************************************************
  * @fn      IWDG_SetReload
@@ -65,10 +59,7 @@ void IWDG_SetPrescaler(uint8_t IWDG_Prescaler)
  *
  * @return  none
  */
-void IWDG_SetReload(uint16_t Reload)
-{
-    IWDG->RLDR = Reload;
-}
+void IWDG_SetReload(uint16_t Reload) { IWDG->RLDR = Reload; }
 
 /*********************************************************************
  * @fn      IWDG_ReloadCounter
@@ -77,10 +68,7 @@ void IWDG_SetReload(uint16_t Reload)
  *
  * @return  none
  */
-void IWDG_ReloadCounter(void)
-{
-    IWDG->CTLR = CTLR_KEY_Reload;
-}
+void IWDG_ReloadCounter(void) { IWDG->CTLR = CTLR_KEY_Reload; }
 
 /*********************************************************************
  * @fn      IWDG_Enable
@@ -89,10 +77,9 @@ void IWDG_ReloadCounter(void)
  *
  * @return  none
  */
-void IWDG_Enable(void)
-{
+void IWDG_Enable(void) {
     IWDG->CTLR = CTLR_KEY_Enable;
-    while((RCC->RSTSCKR & 0x2)==RESET);
+    while ((RCC->RSTSCKR & 0x2) == RESET);
 }
 
 /*********************************************************************
@@ -106,16 +93,12 @@ void IWDG_Enable(void)
  *
  * @return  none
  */
-FlagStatus IWDG_GetFlagStatus(uint16_t IWDG_FLAG)
-{
+FlagStatus IWDG_GetFlagStatus(uint16_t IWDG_FLAG) {
     FlagStatus bitstatus = RESET;
 
-    if((IWDG->STATR & IWDG_FLAG) != (uint32_t)RESET)
-    {
+    if ((IWDG->STATR & IWDG_FLAG) != (uint32_t)RESET) {
         bitstatus = SET;
-    }
-    else
-    {
+    } else {
         bitstatus = RESET;
     }
 

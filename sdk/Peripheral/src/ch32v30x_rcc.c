@@ -1,72 +1,72 @@
 /********************************** (C) COPYRIGHT *******************************
-* File Name          : ch32v30x_rcc.c
-* Author             : WCH
-* Version            : V1.0.0
-* Date               : 2024/05/28
-* Description        : This file provides all the RCC firmware functions.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_rcc.h"
+ * File Name          : ch32v30x_rcc.c
+ * Author             : WCH
+ * Version            : V1.0.0
+ * Date               : 2024/05/28
+ * Description        : This file provides all the RCC firmware functions.
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_rcc.h"
 
 /* RCC registers bit address in the alias region */
-#define RCC_OFFSET                 (RCC_BASE - PERIPH_BASE)
+#define RCC_OFFSET (RCC_BASE - PERIPH_BASE)
 
 /* BDCTLR Register */
-#define BDCTLR_OFFSET              (RCC_OFFSET + 0x20)
+#define BDCTLR_OFFSET (RCC_OFFSET + 0x20)
 
 /* RCC registers bit mask */
 
 /* CTLR register bit mask */
-#define CTLR_HSEBYP_Reset          ((uint32_t)0xFFFBFFFF)
-#define CTLR_HSEBYP_Set            ((uint32_t)0x00040000)
-#define CTLR_HSEON_Reset           ((uint32_t)0xFFFEFFFF)
-#define CTLR_HSEON_Set             ((uint32_t)0x00010000)
-#define CTLR_HSITRIM_Mask          ((uint32_t)0xFFFFFF07)
+#define CTLR_HSEBYP_Reset ((uint32_t)0xFFFBFFFF)
+#define CTLR_HSEBYP_Set ((uint32_t)0x00040000)
+#define CTLR_HSEON_Reset ((uint32_t)0xFFFEFFFF)
+#define CTLR_HSEON_Set ((uint32_t)0x00010000)
+#define CTLR_HSITRIM_Mask ((uint32_t)0xFFFFFF07)
 
-#define CFGR0_PLL_Mask             ((uint32_t)0xFFC0FFFF)
-#define CFGR0_PLL_Mask_1           ((uint32_t)0xFFC2FFFF)
+#define CFGR0_PLL_Mask ((uint32_t)0xFFC0FFFF)
+#define CFGR0_PLL_Mask_1 ((uint32_t)0xFFC2FFFF)
 
-#define CFGR0_PLLMull_Mask         ((uint32_t)0x003C0000)
-#define CFGR0_PLLSRC_Mask          ((uint32_t)0x00010000)
-#define CFGR0_PLLXTPRE_Mask        ((uint32_t)0x00020000)
-#define CFGR0_SWS_Mask             ((uint32_t)0x0000000C)
-#define CFGR0_SW_Mask              ((uint32_t)0xFFFFFFFC)
-#define CFGR0_HPRE_Reset_Mask      ((uint32_t)0xFFFFFF0F)
-#define CFGR0_HPRE_Set_Mask        ((uint32_t)0x000000F0)
-#define CFGR0_PPRE1_Reset_Mask     ((uint32_t)0xFFFFF8FF)
-#define CFGR0_PPRE1_Set_Mask       ((uint32_t)0x00000700)
-#define CFGR0_PPRE2_Reset_Mask     ((uint32_t)0xFFFFC7FF)
-#define CFGR0_PPRE2_Set_Mask       ((uint32_t)0x00003800)
-#define CFGR0_ADCPRE_Reset_Mask    ((uint32_t)0xFFFF3FFF)
-#define CFGR0_ADCPRE_Set_Mask      ((uint32_t)0x0000C000)
+#define CFGR0_PLLMull_Mask ((uint32_t)0x003C0000)
+#define CFGR0_PLLSRC_Mask ((uint32_t)0x00010000)
+#define CFGR0_PLLXTPRE_Mask ((uint32_t)0x00020000)
+#define CFGR0_SWS_Mask ((uint32_t)0x0000000C)
+#define CFGR0_SW_Mask ((uint32_t)0xFFFFFFFC)
+#define CFGR0_HPRE_Reset_Mask ((uint32_t)0xFFFFFF0F)
+#define CFGR0_HPRE_Set_Mask ((uint32_t)0x000000F0)
+#define CFGR0_PPRE1_Reset_Mask ((uint32_t)0xFFFFF8FF)
+#define CFGR0_PPRE1_Set_Mask ((uint32_t)0x00000700)
+#define CFGR0_PPRE2_Reset_Mask ((uint32_t)0xFFFFC7FF)
+#define CFGR0_PPRE2_Set_Mask ((uint32_t)0x00003800)
+#define CFGR0_ADCPRE_Reset_Mask ((uint32_t)0xFFFF3FFF)
+#define CFGR0_ADCPRE_Set_Mask ((uint32_t)0x0000C000)
 
 /* RSTSCKR register bit mask */
-#define RSTSCKR_RMVF_Set           ((uint32_t)0x01000000)
+#define RSTSCKR_RMVF_Set ((uint32_t)0x01000000)
 
 /* CFGR2 register bit mask */
-#define CFGR2_PREDIV1SRC           ((uint32_t)0x00010000)
-#define CFGR2_PREDIV1              ((uint32_t)0x0000000F)
-#define CFGR2_PREDIV2              ((uint32_t)0x000000F0)
-#define CFGR2_PLL2MUL              ((uint32_t)0x00000F00)
-#define CFGR2_PLL3MUL              ((uint32_t)0x0000F000)
+#define CFGR2_PREDIV1SRC ((uint32_t)0x00010000)
+#define CFGR2_PREDIV1 ((uint32_t)0x0000000F)
+#define CFGR2_PREDIV2 ((uint32_t)0x000000F0)
+#define CFGR2_PLL2MUL ((uint32_t)0x00000F00)
+#define CFGR2_PLL3MUL ((uint32_t)0x0000F000)
 
 /* RCC Flag Mask */
-#define FLAG_Mask                  ((uint8_t)0x1F)
+#define FLAG_Mask ((uint8_t)0x1F)
 
 /* INTR register byte 2 (Bits[15:8]) base address */
-#define INTR_BYTE2_ADDRESS         ((uint32_t)0x40021009)
+#define INTR_BYTE2_ADDRESS ((uint32_t)0x40021009)
 
 /* INTR register byte 3 (Bits[23:16]) base address */
-#define INTR_BYTE3_ADDRESS         ((uint32_t)0x4002100A)
+#define INTR_BYTE3_ADDRESS ((uint32_t)0x4002100A)
 
 /* CFGR0 register byte 4 (Bits[31:24]) base address */
-#define CFGR0_BYTE4_ADDRESS        ((uint32_t)0x40021007)
+#define CFGR0_BYTE4_ADDRESS ((uint32_t)0x40021007)
 
 /* BDCTLR register base address */
-#define BDCTLR_ADDRESS             (PERIPH_BASE + BDCTLR_OFFSET)
+#define BDCTLR_ADDRESS (PERIPH_BASE + BDCTLR_OFFSET)
 
 static __I uint8_t APBAHBPrescTable[16] = {0, 0, 0, 0, 1, 2, 3, 4, 1, 2, 3, 4, 6, 7, 8, 9};
 static __I uint8_t ADCPrescTable[4] = {2, 4, 6, 8};
@@ -79,8 +79,7 @@ static __I uint8_t ADCPrescTable[4] = {2, 4, 6, 8};
  *          HSE can not be stopped if it is used directly or through the PLL as system clock.
  * @return  none
  */
-void RCC_DeInit(void)
-{
+void RCC_DeInit(void) {
     RCC->CTLR |= (uint32_t)0x00000001;
 
 #ifdef CH32V30x_D8C
@@ -115,13 +114,11 @@ void RCC_DeInit(void)
  *            HSE can not be stopped if it is used directly or through the PLL as system clock.
  * @return  none
  */
-void RCC_HSEConfig(uint32_t RCC_HSE)
-{
+void RCC_HSEConfig(uint32_t RCC_HSE) {
     RCC->CTLR &= CTLR_HSEON_Reset;
     RCC->CTLR &= CTLR_HSEBYP_Reset;
 
-    switch(RCC_HSE)
-    {
+    switch (RCC_HSE) {
         case RCC_HSE_ON:
             RCC->CTLR |= CTLR_HSEON_Set;
             break;
@@ -143,25 +140,20 @@ void RCC_HSEConfig(uint32_t RCC_HSE)
  * @return  READY - HSE oscillator is stable and ready to use.
  *          NoREADY - HSE oscillator not yet ready.
  */
-ErrorStatus RCC_WaitForHSEStartUp(void)
-{
+ErrorStatus RCC_WaitForHSEStartUp(void) {
     __IO uint32_t StartUpCounter = 0;
 
     ErrorStatus status = NoREADY;
-    FlagStatus  HSEStatus = RESET;
+    FlagStatus HSEStatus = RESET;
 
-    do
-    {
+    do {
         HSEStatus = RCC_GetFlagStatus(RCC_FLAG_HSERDY);
         StartUpCounter++;
-    } while((StartUpCounter != HSE_STARTUP_TIMEOUT) && (HSEStatus == RESET));
+    } while ((StartUpCounter != HSE_STARTUP_TIMEOUT) && (HSEStatus == RESET));
 
-    if(RCC_GetFlagStatus(RCC_FLAG_HSERDY) != RESET)
-    {
+    if (RCC_GetFlagStatus(RCC_FLAG_HSERDY) != RESET) {
         status = READY;
-    }
-    else
-    {
+    } else {
         status = NoREADY;
     }
 
@@ -178,8 +170,7 @@ ErrorStatus RCC_WaitForHSEStartUp(void)
  *
  * @return  none
  */
-void RCC_AdjustHSICalibrationValue(uint8_t HSICalibrationValue)
-{
+void RCC_AdjustHSICalibrationValue(uint8_t HSICalibrationValue) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CTLR;
@@ -197,14 +188,10 @@ void RCC_AdjustHSICalibrationValue(uint8_t HSICalibrationValue)
  *
  * @return  none
  */
-void RCC_HSICmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_HSICmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->CTLR |= (1 << 0);
-    }
-    else
-    {
+    } else {
         RCC->CTLR &= ~(1 << 0);
     }
 }
@@ -258,18 +245,14 @@ void RCC_HSICmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_PLLConfig(uint32_t RCC_PLLSource, uint32_t RCC_PLLMul)
-{
+void RCC_PLLConfig(uint32_t RCC_PLLSource, uint32_t RCC_PLLMul) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR0;
 
-    if(((*(uint32_t *)0x1FFFF70C) & (1 << 14)) != (1 << 14))
-    { /* for other CH32V30x */
+    if (((*(uint32_t *)0x1FFFF70C) & (1 << 14)) != (1 << 14)) { /* for other CH32V30x */
         tmpreg &= CFGR0_PLL_Mask;
-    }
-    else
-    { /* for CH32V307 */
+    } else { /* for CH32V307 */
         tmpreg &= CFGR0_PLL_Mask_1;
     }
 
@@ -282,20 +265,16 @@ void RCC_PLLConfig(uint32_t RCC_PLLSource, uint32_t RCC_PLLMul)
  *
  * @brief   Enables or disables the PLL.
  *          Note-The PLL can not be disabled if it is used as system clock.
- *          
+ *
  *
  * @param   NewState - ENABLE or DISABLE.
  *
  * @return  none
  */
-void RCC_PLLCmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_PLLCmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->CTLR |= (1 << 24);
-    }
-    else
-    {
+    } else {
         RCC->CTLR &= ~(1 << 24);
     }
 }
@@ -312,8 +291,7 @@ void RCC_PLLCmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_SYSCLKConfig(uint32_t RCC_SYSCLKSource)
-{
+void RCC_SYSCLKConfig(uint32_t RCC_SYSCLKSource) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR0;
@@ -331,10 +309,7 @@ void RCC_SYSCLKConfig(uint32_t RCC_SYSCLKSource)
  *          0x04 - HSE used as system clock.
  *          0x08 - PLL used as system clock.
  */
-uint8_t RCC_GetSYSCLKSource(void)
-{
-    return ((uint8_t)(RCC->CFGR0 & CFGR0_SWS_Mask));
-}
+uint8_t RCC_GetSYSCLKSource(void) { return ((uint8_t)(RCC->CFGR0 & CFGR0_SWS_Mask)); }
 
 /*********************************************************************
  * @fn      RCC_HCLKConfig
@@ -355,8 +330,7 @@ uint8_t RCC_GetSYSCLKSource(void)
  *
  * @return  none
  */
-void RCC_HCLKConfig(uint32_t RCC_SYSCLK)
-{
+void RCC_HCLKConfig(uint32_t RCC_SYSCLK) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR0;
@@ -380,8 +354,7 @@ void RCC_HCLKConfig(uint32_t RCC_SYSCLK)
  *
  * @return  none
  */
-void RCC_PCLK1Config(uint32_t RCC_HCLK)
-{
+void RCC_PCLK1Config(uint32_t RCC_HCLK) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR0;
@@ -405,8 +378,7 @@ void RCC_PCLK1Config(uint32_t RCC_HCLK)
  *
  * @return  none
  */
-void RCC_PCLK2Config(uint32_t RCC_HCLK)
-{
+void RCC_PCLK2Config(uint32_t RCC_HCLK) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR0;
@@ -430,14 +402,10 @@ void RCC_PCLK2Config(uint32_t RCC_HCLK)
  *
  * @return  none
  */
-void RCC_ITConfig(uint8_t RCC_IT, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_ITConfig(uint8_t RCC_IT, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         *(__IO uint8_t *)INTR_BYTE2_ADDRESS |= RCC_IT;
-    }
-    else
-    {
+    } else {
         *(__IO uint8_t *)INTR_BYTE2_ADDRESS &= (uint8_t)~RCC_IT;
     }
 }
@@ -456,8 +424,7 @@ void RCC_ITConfig(uint8_t RCC_IT, FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_ADCCLKConfig(uint32_t RCC_PCLK2)
-{
+void RCC_ADCCLKConfig(uint32_t RCC_PCLK2) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR0;
@@ -478,13 +445,11 @@ void RCC_ADCCLKConfig(uint32_t RCC_PCLK2)
  *
  * @return  none
  */
-void RCC_LSEConfig(uint8_t RCC_LSE)
-{
+void RCC_LSEConfig(uint8_t RCC_LSE) {
     *(__IO uint8_t *)BDCTLR_ADDRESS = RCC_LSE_OFF;
     *(__IO uint8_t *)BDCTLR_ADDRESS = RCC_LSE_OFF;
 
-    switch(RCC_LSE)
-    {
+    switch (RCC_LSE) {
         case RCC_LSE_ON:
             *(__IO uint8_t *)BDCTLR_ADDRESS = RCC_LSE_ON;
             break;
@@ -509,14 +474,10 @@ void RCC_LSEConfig(uint8_t RCC_LSE)
  *
  * @return  none
  */
-void RCC_LSICmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_LSICmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->RSTSCKR |= (1 << 0);
-    }
-    else
-    {
+    } else {
         RCC->RSTSCKR &= ~(1 << 0);
     }
 }
@@ -530,14 +491,11 @@ void RCC_LSICmd(FunctionalState NewState)
  *            RCC_RTCCLKSource_LSE - LSE selected as RTC clock.
  *            RCC_RTCCLKSource_LSI - LSI selected as RTC clock.
  *            RCC_RTCCLKSource_HSE_Div128 - HSE clock divided by 128 selected as RTC clock.
- *         Note-   
+ *         Note-
  *           Once the RTC clock is selected it can't be changed unless the Backup domain is reset.
  * @return  none
  */
-void RCC_RTCCLKConfig(uint32_t RCC_RTCCLKSource)
-{
-    RCC->BDCTLR |= RCC_RTCCLKSource;
-}
+void RCC_RTCCLKConfig(uint32_t RCC_RTCCLKSource) { RCC->BDCTLR |= RCC_RTCCLKSource; }
 
 /*********************************************************************
  * @fn      RCC_RTCCLKCmd
@@ -549,14 +507,10 @@ void RCC_RTCCLKConfig(uint32_t RCC_RTCCLKSource)
  *
  * @return  none
  */
-void RCC_RTCCLKCmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_RTCCLKCmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->BDCTLR |= (1 << 15);
-    }
-    else
-    {
+    } else {
         RCC->BDCTLR &= ~(1 << 15);
     }
 }
@@ -572,8 +526,7 @@ void RCC_RTCCLKCmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_GetClocksFreq(RCC_ClocksTypeDef *RCC_Clocks)
-{
+void RCC_GetClocksFreq(RCC_ClocksTypeDef *RCC_Clocks) {
     uint32_t tmp = 0, pllmull = 0, pllsource = 0, presc = 0;
     uint8_t Pll_6_5 = 0;
 
@@ -584,8 +537,7 @@ void RCC_GetClocksFreq(RCC_ClocksTypeDef *RCC_Clocks)
 
     tmp = RCC->CFGR0 & CFGR0_SWS_Mask;
 
-    switch(tmp)
-    {
+    switch (tmp) {
         case 0x00:
             RCC_Clocks->SYSCLK_Frequency = HSI_VALUE;
             break;
@@ -600,63 +552,49 @@ void RCC_GetClocksFreq(RCC_ClocksTypeDef *RCC_Clocks)
 
             pllmull = (pllmull >> 18) + 2;
 
-            if(((*(uint32_t *)0x1FFFF70C) & (1 << 14)) != (1 << 14))
-            { /* for other CH32V30x */
-                if(pllmull == 17)
-                    pllmull = 18;
-            }
-            else
-            { /* for CH32V307 */
-                if(pllmull == 2)
-                    pllmull = 18;
-                if(pllmull == 15)
-                {
+            if (((*(uint32_t *)0x1FFFF70C) & (1 << 14)) != (1 << 14)) { /* for other CH32V30x */
+                if (pllmull == 17) pllmull = 18;
+            } else { /* for CH32V307 */
+                if (pllmull == 2) pllmull = 18;
+                if (pllmull == 15) {
                     pllmull = 13; /* *6.5 */
                     Pll_6_5 = 1;
                 }
-                if(pllmull == 16)
-                    pllmull = 15;
-                if(pllmull == 17)
-                    pllmull = 16;
+                if (pllmull == 16) pllmull = 15;
+                if (pllmull == 17) pllmull = 16;
             }
 
-            if(pllsource == 0x00)
-            {
-                if(EXTEN->EXTEN_CTR & EXTEN_PLL_HSI_PRE)
-                {
+            if (pllsource == 0x00) {
+                if (EXTEN->EXTEN_CTR & EXTEN_PLL_HSI_PRE) {
                     RCC_Clocks->SYSCLK_Frequency = (HSI_VALUE)*pllmull;
-                }
-                else
-                {
+                } else {
                     RCC_Clocks->SYSCLK_Frequency = (HSI_VALUE >> 1) * pllmull;
                 }
-            }
-            else
-            {
+            } else {
 #ifdef CH32V30x_D8
-                if((RCC->CFGR0 & CFGR0_PLLXTPRE_Mask) != (uint32_t)RESET)
-                {
+                if ((RCC->CFGR0 & CFGR0_PLLXTPRE_Mask) != (uint32_t)RESET) {
                     RCC_Clocks->SYSCLK_Frequency = (HSE_VALUE >> 1) * pllmull;
-                }
-                else
-                {
+                } else {
                     RCC_Clocks->SYSCLK_Frequency = HSE_VALUE * pllmull;
                 }
 #else
-                if(RCC->CFGR2 & (1<<16)){ /* PLL2 */
-                    RCC_Clocks->SYSCLK_Frequency = HSE_VALUE/(((RCC->CFGR2 & 0xF0)>>4) + 1);  /* PREDIV2 */
+                if (RCC->CFGR2 & (1 << 16)) {                                                    /* PLL2 */
+                    RCC_Clocks->SYSCLK_Frequency = HSE_VALUE / (((RCC->CFGR2 & 0xF0) >> 4) + 1); /* PREDIV2 */
 
-                    Pll2mull = (uint8_t)((RCC->CFGR2 & 0xF00)>>8);
+                    Pll2mull = (uint8_t)((RCC->CFGR2 & 0xF00) >> 8);
 
-                    if(Pll2mull == 0) RCC_Clocks->SYSCLK_Frequency = (RCC_Clocks->SYSCLK_Frequency * 5)>>1;
-                    else if(Pll2mull == 1) RCC_Clocks->SYSCLK_Frequency = (RCC_Clocks->SYSCLK_Frequency * 25)>>1;
-                    else if(Pll2mull == 15) RCC_Clocks->SYSCLK_Frequency = RCC_Clocks->SYSCLK_Frequency * 20;
-                    else  RCC_Clocks->SYSCLK_Frequency = RCC_Clocks->SYSCLK_Frequency * (Pll2mull + 2);
+                    if (Pll2mull == 0)
+                        RCC_Clocks->SYSCLK_Frequency = (RCC_Clocks->SYSCLK_Frequency * 5) >> 1;
+                    else if (Pll2mull == 1)
+                        RCC_Clocks->SYSCLK_Frequency = (RCC_Clocks->SYSCLK_Frequency * 25) >> 1;
+                    else if (Pll2mull == 15)
+                        RCC_Clocks->SYSCLK_Frequency = RCC_Clocks->SYSCLK_Frequency * 20;
+                    else
+                        RCC_Clocks->SYSCLK_Frequency = RCC_Clocks->SYSCLK_Frequency * (Pll2mull + 2);
 
-                    RCC_Clocks->SYSCLK_Frequency = RCC_Clocks->SYSCLK_Frequency/((RCC->CFGR2 & 0xF) + 1);  /* PREDIV1 */
-                }
-                else{/* HSE */
-                    RCC_Clocks->SYSCLK_Frequency = HSE_VALUE/((RCC->CFGR2 & 0xF) + 1);  /* PREDIV1 */
+                    RCC_Clocks->SYSCLK_Frequency = RCC_Clocks->SYSCLK_Frequency / ((RCC->CFGR2 & 0xF) + 1); /* PREDIV1 */
+                } else {                                                                                    /* HSE */
+                    RCC_Clocks->SYSCLK_Frequency = HSE_VALUE / ((RCC->CFGR2 & 0xF) + 1);                    /* PREDIV1 */
                 }
 
                 RCC_Clocks->SYSCLK_Frequency = RCC_Clocks->SYSCLK_Frequency * pllmull;
@@ -664,8 +602,7 @@ void RCC_GetClocksFreq(RCC_ClocksTypeDef *RCC_Clocks)
 #endif
             }
 
-            if(Pll_6_5 == 1)
-                RCC_Clocks->SYSCLK_Frequency = (RCC_Clocks->SYSCLK_Frequency / 2);
+            if (Pll_6_5 == 1) RCC_Clocks->SYSCLK_Frequency = (RCC_Clocks->SYSCLK_Frequency / 2);
 
             break;
 
@@ -717,14 +654,10 @@ void RCC_GetClocksFreq(RCC_ClocksTypeDef *RCC_Clocks)
  *
  * @return  none
  */
-void RCC_AHBPeriphClockCmd(uint32_t RCC_AHBPeriph, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_AHBPeriphClockCmd(uint32_t RCC_AHBPeriph, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->AHBPCENR |= RCC_AHBPeriph;
-    }
-    else
-    {
+    } else {
         RCC->AHBPCENR &= ~RCC_AHBPeriph;
     }
 }
@@ -753,14 +686,10 @@ void RCC_AHBPeriphClockCmd(uint32_t RCC_AHBPeriph, FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_APB2PeriphClockCmd(uint32_t RCC_APB2Periph, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_APB2PeriphClockCmd(uint32_t RCC_APB2Periph, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->APB2PCENR |= RCC_APB2Periph;
-    }
-    else
-    {
+    } else {
         RCC->APB2PCENR &= ~RCC_APB2Periph;
     }
 }
@@ -798,14 +727,10 @@ void RCC_APB2PeriphClockCmd(uint32_t RCC_APB2Periph, FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_APB1PeriphClockCmd(uint32_t RCC_APB1Periph, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_APB1PeriphClockCmd(uint32_t RCC_APB1Periph, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->APB1PCENR |= RCC_APB1Periph;
-    }
-    else
-    {
+    } else {
         RCC->APB1PCENR &= ~RCC_APB1Periph;
     }
 }
@@ -834,14 +759,10 @@ void RCC_APB1PeriphClockCmd(uint32_t RCC_APB1Periph, FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_APB2PeriphResetCmd(uint32_t RCC_APB2Periph, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_APB2PeriphResetCmd(uint32_t RCC_APB2Periph, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->APB2PRSTR |= RCC_APB2Periph;
-    }
-    else
-    {
+    } else {
         RCC->APB2PRSTR &= ~RCC_APB2Periph;
     }
 }
@@ -879,14 +800,10 @@ void RCC_APB2PeriphResetCmd(uint32_t RCC_APB2Periph, FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_APB1PeriphResetCmd(uint32_t RCC_APB1Periph, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_APB1PeriphResetCmd(uint32_t RCC_APB1Periph, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->APB1PRSTR |= RCC_APB1Periph;
-    }
-    else
-    {
+    } else {
         RCC->APB1PRSTR &= ~RCC_APB1Periph;
     }
 }
@@ -900,14 +817,10 @@ void RCC_APB1PeriphResetCmd(uint32_t RCC_APB1Periph, FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_BackupResetCmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_BackupResetCmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->BDCTLR |= (1 << 16);
-    }
-    else
-    {
+    } else {
         RCC->BDCTLR &= ~(1 << 16);
     }
 }
@@ -921,14 +834,10 @@ void RCC_BackupResetCmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_ClockSecuritySystemCmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_ClockSecuritySystemCmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->CTLR |= (1 << 19);
-    }
-    else
-    {
+    } else {
         RCC->CTLR &= ~(1 << 19);
     }
 }
@@ -951,10 +860,7 @@ void RCC_ClockSecuritySystemCmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_MCOConfig(uint8_t RCC_MCO)
-{
-    *(__IO uint8_t *)CFGR0_BYTE4_ADDRESS = RCC_MCO;
-}
+void RCC_MCOConfig(uint8_t RCC_MCO) { *(__IO uint8_t *)CFGR0_BYTE4_ADDRESS = RCC_MCO; }
 
 /*********************************************************************
  * @fn      RCC_GetFlagStatus
@@ -978,35 +884,26 @@ void RCC_MCOConfig(uint8_t RCC_MCO)
  *
  * @return  FlagStatus - SET or RESET.
  */
-FlagStatus RCC_GetFlagStatus(uint8_t RCC_FLAG)
-{
+FlagStatus RCC_GetFlagStatus(uint8_t RCC_FLAG) {
     uint32_t tmp = 0;
     uint32_t statusreg = 0;
 
     FlagStatus bitstatus = RESET;
     tmp = RCC_FLAG >> 5;
 
-    if(tmp == 1)
-    {
+    if (tmp == 1) {
         statusreg = RCC->CTLR;
-    }
-    else if(tmp == 2)
-    {
+    } else if (tmp == 2) {
         statusreg = RCC->BDCTLR;
-    }
-    else
-    {
+    } else {
         statusreg = RCC->RSTSCKR;
     }
 
     tmp = RCC_FLAG & FLAG_Mask;
 
-    if((statusreg & ((uint32_t)1 << tmp)) != (uint32_t)RESET)
-    {
+    if ((statusreg & ((uint32_t)1 << tmp)) != (uint32_t)RESET) {
         bitstatus = SET;
-    }
-    else
-    {
+    } else {
         bitstatus = RESET;
     }
 
@@ -1017,15 +914,12 @@ FlagStatus RCC_GetFlagStatus(uint8_t RCC_FLAG)
  * @fn      RCC_ClearFlag
  *
  * @brief   Clears the RCC reset flags.
- *          Note-   
+ *          Note-
  *          The reset flags are: RCC_FLAG_PINRST, RCC_FLAG_PORRST, RCC_FLAG_SFTRST,
  *          RCC_FLAG_IWDGRST, RCC_FLAG_WWDGRST, RCC_FLAG_LPWRRST
  * @return  none
  */
-void RCC_ClearFlag(void)
-{
-    RCC->RSTSCKR |= RSTSCKR_RMVF_Set;
-}
+void RCC_ClearFlag(void) { RCC->RSTSCKR |= RSTSCKR_RMVF_Set; }
 
 /*********************************************************************
  * @fn      RCC_GetITStatus
@@ -1045,16 +939,12 @@ void RCC_ClearFlag(void)
  * @return  ITStatus - SET or RESET.
  */
 
-ITStatus RCC_GetITStatus(uint8_t RCC_IT)
-{
+ITStatus RCC_GetITStatus(uint8_t RCC_IT) {
     ITStatus bitstatus = RESET;
 
-    if((RCC->INTR & RCC_IT) != (uint32_t)RESET)
-    {
+    if ((RCC->INTR & RCC_IT) != (uint32_t)RESET) {
         bitstatus = SET;
-    }
-    else
-    {
+    } else {
         bitstatus = RESET;
     }
 
@@ -1078,10 +968,7 @@ ITStatus RCC_GetITStatus(uint8_t RCC_IT)
  *
  * @return  none
  */
-void RCC_ClearITPendingBit(uint8_t RCC_IT)
-{
-    *(__IO uint8_t *)INTR_BYTE3_ADDRESS = RCC_IT;
-}
+void RCC_ClearITPendingBit(uint8_t RCC_IT) { *(__IO uint8_t *)INTR_BYTE3_ADDRESS = RCC_IT; }
 
 /*********************************************************************
  * @fn      RCC_PREDIV1Config
@@ -1093,13 +980,12 @@ void RCC_ClearITPendingBit(uint8_t RCC_IT)
  *            RCC_PREDIV1_Source_PLL2 - PLL2 selected as PREDIV1 clock
  *          RCC_PREDIV1_Div - specifies the PREDIV1 clock division factor.
  *            This parameter can be RCC_PREDIV1_Divx where x[1,16]
- *         Note- 
+ *         Note-
  *         - This function must be used only when the PLL is disabled.
  *
  * @return  none
  */
-void RCC_PREDIV1Config(uint32_t RCC_PREDIV1_Source, uint32_t RCC_PREDIV1_Div)
-{
+void RCC_PREDIV1Config(uint32_t RCC_PREDIV1_Source, uint32_t RCC_PREDIV1_Div) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR2;
@@ -1115,13 +1001,12 @@ void RCC_PREDIV1Config(uint32_t RCC_PREDIV1_Source, uint32_t RCC_PREDIV1_Div)
  *
  * @param   RCC_PREDIV2_Div - specifies the PREDIV2 clock division factor.
  *          This parameter can be RCC_PREDIV2_Divx where x:[1,16]
- *          Note- 
+ *          Note-
  *          - This function must be used only when both PLL2 and PLL3 are disabled.
  *
  * @return  none
  */
-void RCC_PREDIV2Config(uint32_t RCC_PREDIV2_Div)
-{
+void RCC_PREDIV2Config(uint32_t RCC_PREDIV2_Div) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR2;
@@ -1142,8 +1027,7 @@ void RCC_PREDIV2Config(uint32_t RCC_PREDIV2_Div)
  *
  * @return  none
  */
-void RCC_PLL2Config(uint32_t RCC_PLL2Mul)
-{
+void RCC_PLL2Config(uint32_t RCC_PLL2Mul) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR2;
@@ -1159,20 +1043,16 @@ void RCC_PLL2Config(uint32_t RCC_PLL2Mul)
  *
  * @param   NewState - new state of the PLL2. This parameter can be
  *          ENABLE or DISABLE.
- *          Note- 
+ *          Note-
  *          - The PLL2 can not be disabled if it is used indirectly as system clock
  *          (i.e. it is used as PLL clock entry that is used as System clock).
  *
  * @return  none
  */
-void RCC_PLL2Cmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_PLL2Cmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->CTLR |= (1 << 26);
-    }
-    else
-    {
+    } else {
         RCC->CTLR &= ~(1 << 26);
     }
 }
@@ -1184,13 +1064,12 @@ void RCC_PLL2Cmd(FunctionalState NewState)
  *
  * @param   RCC_PLL3Mul - specifies the PLL3 multiplication factor.
  *            This parameter can be RCC_PLL3Mul_x where x:{[4,16], 2.5, 12.5, 20}
- *          Note- 
+ *          Note-
  *          - This function must be used only when the PLL3 is disabled.
  *
  * @return  none
  */
-void RCC_PLL3Config(uint32_t RCC_PLL3Mul)
-{
+void RCC_PLL3Config(uint32_t RCC_PLL3Mul) {
     uint32_t tmpreg = 0;
 
     tmpreg = RCC->CFGR2;
@@ -1209,14 +1088,10 @@ void RCC_PLL3Config(uint32_t RCC_PLL3Mul)
  *
  * @return  none
  */
-void RCC_PLL3Cmd(FunctionalState NewState)
-{
-    if(NewState)
-    {
+void RCC_PLL3Cmd(FunctionalState NewState) {
+    if (NewState) {
         RCC->CTLR |= (1 << 28);
-    }
-    else
-    {
+    } else {
         RCC->CTLR &= ~(1 << 28);
     }
 }
@@ -1236,8 +1111,7 @@ void RCC_PLL3Cmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_USBFSCLKConfig(uint32_t RCC_USBFSCLKSource)
-{
+void RCC_USBFSCLKConfig(uint32_t RCC_USBFSCLKSource) {
     RCC->CFGR0 &= ~(3 << 22);
     RCC->CFGR0 |= RCC_USBFSCLKSource << 22;
 }
@@ -1254,8 +1128,7 @@ void RCC_USBFSCLKConfig(uint32_t RCC_USBFSCLKSource)
  *          - This function must be called before enabling I2S2 APB clock.
  * @return  none
  */
-void RCC_I2S2CLKConfig(uint32_t RCC_I2S2CLKSource)
-{
+void RCC_I2S2CLKConfig(uint32_t RCC_I2S2CLKSource) {
     RCC->CFGR2 &= ~(1 << 17);
     RCC->CFGR2 |= RCC_I2S2CLKSource << 17;
 }
@@ -1272,8 +1145,7 @@ void RCC_I2S2CLKConfig(uint32_t RCC_I2S2CLKSource)
  *         - This function must be called before enabling I2S3 APB clock.
  * @return  none
  */
-void RCC_I2S3CLKConfig(uint32_t RCC_I2S3CLKSource)
-{
+void RCC_I2S3CLKConfig(uint32_t RCC_I2S3CLKSource) {
     RCC->CFGR2 &= ~(1 << 18);
     RCC->CFGR2 |= RCC_I2S3CLKSource << 18;
 }
@@ -1290,14 +1162,10 @@ void RCC_I2S3CLKConfig(uint32_t RCC_I2S3CLKSource)
  *
  * @return  none
  */
-void RCC_AHBPeriphResetCmd(uint32_t RCC_AHBPeriph, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_AHBPeriphResetCmd(uint32_t RCC_AHBPeriph, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->AHBRSTR |= RCC_AHBPeriph;
-    }
-    else
-    {
+    } else {
         RCC->AHBRSTR &= ~RCC_AHBPeriph;
     }
 }
@@ -1311,14 +1179,10 @@ void RCC_AHBPeriphResetCmd(uint32_t RCC_AHBPeriph, FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_ADCCLKADJcmd(FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_ADCCLKADJcmd(FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->CFGR0 |= (1 << 31);
-    }
-    else
-    {
+    } else {
         RCC->CFGR0 &= ~(1 << 31);
     }
 }
@@ -1334,8 +1198,7 @@ void RCC_ADCCLKADJcmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_RNGCLKConfig(uint32_t RCC_RNGCLKSource)
-{
+void RCC_RNGCLKConfig(uint32_t RCC_RNGCLKSource) {
     RCC->CFGR2 &= ~(1 << 19);
     RCC->CFGR2 |= RCC_RNGCLKSource << 19;
 }
@@ -1352,8 +1215,7 @@ void RCC_RNGCLKConfig(uint32_t RCC_RNGCLKSource)
  *
  * @return  none
  */
-void RCC_ETH1GCLKConfig(uint32_t RCC_ETH1GCLKSource)
-{
+void RCC_ETH1GCLKConfig(uint32_t RCC_ETH1GCLKSource) {
     RCC->CFGR2 &= ~(3 << 20);
     RCC->CFGR2 |= RCC_ETH1GCLKSource << 20;
 }
@@ -1367,14 +1229,10 @@ void RCC_ETH1GCLKConfig(uint32_t RCC_ETH1GCLKSource)
  *
  * @return  none
  */
-void RCC_ETH1G_125Mcmd(FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_ETH1G_125Mcmd(FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->CFGR2 |= (1 << 22);
-    }
-    else
-    {
+    } else {
         RCC->CFGR2 &= ~(1 << 22);
     }
 }
@@ -1396,8 +1254,7 @@ void RCC_ETH1G_125Mcmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_USBHSConfig(uint32_t RCC_USBHS)
-{
+void RCC_USBHSConfig(uint32_t RCC_USBHS) {
     RCC->CFGR2 &= ~(7 << 24);
     RCC->CFGR2 |= RCC_USBHS << 24;
 }
@@ -1413,8 +1270,7 @@ void RCC_USBHSConfig(uint32_t RCC_USBHS)
  *
  * @return  none
  */
-void RCC_USBHSPLLCLKConfig(uint32_t RCC_USBHSPLLCLKSource)
-{
+void RCC_USBHSPLLCLKConfig(uint32_t RCC_USBHSPLLCLKSource) {
     RCC->CFGR2 &= ~(1 << 27);
     RCC->CFGR2 |= RCC_USBHSPLLCLKSource << 27;
 }
@@ -1432,8 +1288,7 @@ void RCC_USBHSPLLCLKConfig(uint32_t RCC_USBHSPLLCLKSource)
  *
  * @return  none
  */
-void RCC_USBHSPLLCKREFCLKConfig(uint32_t RCC_USBHSPLLCKREFCLKSource)
-{
+void RCC_USBHSPLLCKREFCLKConfig(uint32_t RCC_USBHSPLLCKREFCLKSource) {
     RCC->CFGR2 &= ~(3 << 28);
     RCC->CFGR2 |= RCC_USBHSPLLCKREFCLKSource << 28;
 }
@@ -1447,14 +1302,10 @@ void RCC_USBHSPLLCKREFCLKConfig(uint32_t RCC_USBHSPLLCKREFCLKSource)
  *
  * @return  none
  */
-void RCC_USBHSPHYPLLALIVEcmd(FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void RCC_USBHSPHYPLLALIVEcmd(FunctionalState NewState) {
+    if (NewState != DISABLE) {
         RCC->CFGR2 |= (1 << 30);
-    }
-    else
-    {
+    } else {
         RCC->CFGR2 &= ~(1 << 30);
     }
 }
@@ -1470,8 +1321,7 @@ void RCC_USBHSPHYPLLALIVEcmd(FunctionalState NewState)
  *
  * @return  none
  */
-void RCC_USBCLK48MConfig(uint32_t RCC_USBCLK48MSource)
-{
+void RCC_USBCLK48MConfig(uint32_t RCC_USBCLK48MSource) {
     RCC->CFGR2 &= ~(1 << 31);
     RCC->CFGR2 |= RCC_USBCLK48MSource << 31;
 }

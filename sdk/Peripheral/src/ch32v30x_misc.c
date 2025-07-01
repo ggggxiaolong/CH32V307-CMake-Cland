@@ -1,15 +1,15 @@
 /********************************** (C) COPYRIGHT *******************************
-* File Name          : ch32v30x_misc.c
-* Author             : WCH
-* Version            : V1.0.0
-* Date               : 2024/03/06
-* Description        : This file provides all the miscellaneous firmware functions .
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_misc.h"
+ * File Name          : ch32v30x_misc.c
+ * Author             : WCH
+ * Version            : V1.0.0
+ * Date               : 2024/03/06
+ * Description        : This file provides all the miscellaneous firmware functions .
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_misc.h"
 
 __IO uint32_t NVIC_Priority_Group = 0;
 
@@ -30,10 +30,7 @@ __IO uint32_t NVIC_Priority_Group = 0;
  *
  * @return  none
  */
-void NVIC_PriorityGroupConfig(uint32_t NVIC_PriorityGroup)
-{
-    NVIC_Priority_Group = NVIC_PriorityGroup;
-}
+void NVIC_PriorityGroupConfig(uint32_t NVIC_PriorityGroup) { NVIC_Priority_Group = NVIC_PriorityGroup; }
 
 /*********************************************************************
  * @fn      NVIC_Init
@@ -61,45 +58,36 @@ void NVIC_PriorityGroupConfig(uint32_t NVIC_PriorityGroup)
  *
  * @return  none
  */
-void NVIC_Init(NVIC_InitTypeDef *NVIC_InitStruct)
-{
+void NVIC_Init(NVIC_InitTypeDef *NVIC_InitStruct) {
 #if (INTSYSCR_INEST == INTSYSCR_INEST_NoEN)
-    if(NVIC_Priority_Group == NVIC_PriorityGroup_0)
-    {
+    if (NVIC_Priority_Group == NVIC_PriorityGroup_0) {
         NVIC_SetPriority(NVIC_InitStruct->NVIC_IRQChannel, NVIC_InitStruct->NVIC_IRQChannelSubPriority << 4);
     }
 #elif (INTSYSCR_INEST == INTSYSCR_INEST_EN_2Level)
-    if(NVIC_Priority_Group == NVIC_PriorityGroup_1)
-    {
-        if(NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority < 2)
-        {
-            NVIC_SetPriority(NVIC_InitStruct->NVIC_IRQChannel, (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << 7) | (NVIC_InitStruct->NVIC_IRQChannelSubPriority << 5));
+    if (NVIC_Priority_Group == NVIC_PriorityGroup_1) {
+        if (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority < 2) {
+            NVIC_SetPriority(NVIC_InitStruct->NVIC_IRQChannel,
+                             (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << 7) | (NVIC_InitStruct->NVIC_IRQChannelSubPriority << 5));
         }
     }
 #elif (INTSYSCR_INEST == INTSYSCR_INEST_EN_4Level)
-    if(NVIC_Priority_Group == NVIC_PriorityGroup_2)
-    {
-        if(NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority < 4)
-        {
-            NVIC_SetPriority(NVIC_InitStruct->NVIC_IRQChannel, (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << 6) | (NVIC_InitStruct->NVIC_IRQChannelSubPriority << 5));
+    if (NVIC_Priority_Group == NVIC_PriorityGroup_2) {
+        if (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority < 4) {
+            NVIC_SetPriority(NVIC_InitStruct->NVIC_IRQChannel,
+                             (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << 6) | (NVIC_InitStruct->NVIC_IRQChannelSubPriority << 5));
         }
     }
 #elif (INTSYSCR_INEST == INTSYSCR_INEST_EN_8Level)
-    if(NVIC_Priority_Group == NVIC_PriorityGroup_3)
-    {
-        if(NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority < 8)
-        {
-            NVIC_SetPriority(NVIC_InitStruct->NVIC_IRQChannel, (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << 5) );
+    if (NVIC_Priority_Group == NVIC_PriorityGroup_3) {
+        if (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority < 8) {
+            NVIC_SetPriority(NVIC_InitStruct->NVIC_IRQChannel, (NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << 5));
         }
     }
 #endif
 
-    if(NVIC_InitStruct->NVIC_IRQChannelCmd != DISABLE)
-    {
+    if (NVIC_InitStruct->NVIC_IRQChannelCmd != DISABLE) {
         NVIC_EnableIRQ(NVIC_InitStruct->NVIC_IRQChannel);
-    }
-    else
-    {
+    } else {
         NVIC_DisableIRQ(NVIC_InitStruct->NVIC_IRQChannel);
     }
 }

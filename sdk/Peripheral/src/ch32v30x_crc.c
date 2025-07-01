@@ -1,15 +1,15 @@
 /********************************** (C) COPYRIGHT  *******************************
-* File Name          : ch32v30x_crc.c
-* Author             : WCH
-* Version            : V1.0.0
-* Date               : 2021/06/06
-* Description        : This file provides all the CRC firmware functions.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_crc.h"
+ * File Name          : ch32v30x_crc.c
+ * Author             : WCH
+ * Version            : V1.0.0
+ * Date               : 2021/06/06
+ * Description        : This file provides all the CRC firmware functions.
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_crc.h"
 
 /*********************************************************************
  * @fn      CRC_ResetDR
@@ -18,10 +18,7 @@
  *
  * @return  none
  */
-void CRC_ResetDR(void)
-{
-    CRC->CTLR = CRC_CTLR_RESET;
-}
+void CRC_ResetDR(void) { CRC->CTLR = CRC_CTLR_RESET; }
 
 /*********************************************************************
  * @fn      CRC_CalcCRC
@@ -32,8 +29,7 @@ void CRC_ResetDR(void)
  *
  * @return  32-bit CRC.
  */
-uint32_t CRC_CalcCRC(uint32_t Data)
-{
+uint32_t CRC_CalcCRC(uint32_t Data) {
     CRC->DATAR = Data;
 
     return (CRC->DATAR);
@@ -49,12 +45,10 @@ uint32_t CRC_CalcCRC(uint32_t Data)
  *
  * @return  32-bit CRC.
  */
-uint32_t CRC_CalcBlockCRC(uint32_t pBuffer[], uint32_t BufferLength)
-{
+uint32_t CRC_CalcBlockCRC(uint32_t pBuffer[], uint32_t BufferLength) {
     uint32_t index = 0;
 
-    for(index = 0; index < BufferLength; index++)
-    {
+    for (index = 0; index < BufferLength; index++) {
         CRC->DATAR = pBuffer[index];
     }
 
@@ -68,10 +62,7 @@ uint32_t CRC_CalcBlockCRC(uint32_t pBuffer[], uint32_t BufferLength)
  *
  * @return  32-bit CRC.
  */
-uint32_t CRC_GetCRC(void)
-{
-    return (CRC->DATAR);
-}
+uint32_t CRC_GetCRC(void) { return (CRC->DATAR); }
 
 /*********************************************************************
  * @fn      CRC_SetIDRegister
@@ -82,10 +73,7 @@ uint32_t CRC_GetCRC(void)
  *
  * @return  none
  */
-void CRC_SetIDRegister(uint8_t IDValue)
-{
-    CRC->IDATAR = IDValue;
-}
+void CRC_SetIDRegister(uint8_t IDValue) { CRC->IDATAR = IDValue; }
 
 /*********************************************************************
  * @fn      CRC_GetIDRegister
@@ -94,7 +82,4 @@ void CRC_SetIDRegister(uint8_t IDValue)
  *
  * @return  8-bit value of the ID register.
  */
-uint8_t CRC_GetIDRegister(void)
-{
-    return (CRC->IDATAR);
-}
+uint8_t CRC_GetIDRegister(void) { return (CRC->IDATAR); }

@@ -6,6 +6,12 @@
   },
   "C_Cpp.intelliSenseEngine": "disabled",
   "clangd.arguments": [
-    "--query-driver=/home/MrTan/Documents/ch32_toolchain/riscv_gcc12/bin/riscv-wch-elf*",
-  ]
+    "--query-driver=/home/MrTan/Documents/ch32_toolchain/riscv_gcc12/bin/riscv-wch-elf*"
+  ],
+  "clangd.formatOnType": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  }
 }

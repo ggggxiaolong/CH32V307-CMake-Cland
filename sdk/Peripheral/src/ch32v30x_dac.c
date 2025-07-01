@@ -1,31 +1,32 @@
 /********************************** (C) COPYRIGHT  *******************************
-* File Name          : ch32v30x_dac.c
-* Author             : WCH
-* Version            : V1.0.0
-* Date               : 2021/06/06
-* Description        : This file provides all the DAC firmware functions.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-#include "ch32v30x_dac.h"
-#include "ch32v30x_rcc.h"
+ * File Name          : ch32v30x_dac.c
+ * Author             : WCH
+ * Version            : V1.0.0
+ * Date               : 2021/06/06
+ * Description        : This file provides all the DAC firmware functions.
+ *********************************************************************************
+ * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
+ * Attention: This software (modified or not) and binary are used for
+ * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ *******************************************************************************/
+#include "../inc/ch32v30x_dac.h"
+
+#include "../inc/ch32v30x_rcc.h"
 
 /* CTLR register Mask */
-#define CTLR_CLEAR_MASK    ((uint32_t)0x00000FFE)
+#define CTLR_CLEAR_MASK ((uint32_t)0x00000FFE)
 
 /* DAC Dual Channels SWTR masks */
-#define DUAL_SWTR_SET      ((uint32_t)0x00000003)
-#define DUAL_SWTR_RESET    ((uint32_t)0xFFFFFFFC)
+#define DUAL_SWTR_SET ((uint32_t)0x00000003)
+#define DUAL_SWTR_RESET ((uint32_t)0xFFFFFFFC)
 
 /* DHR registers offsets */
-#define DHR12R1_OFFSET     ((uint32_t)0x00000008)
-#define DHR12R2_OFFSET     ((uint32_t)0x00000014)
-#define DHR12RD_OFFSET     ((uint32_t)0x00000020)
+#define DHR12R1_OFFSET ((uint32_t)0x00000008)
+#define DHR12R2_OFFSET ((uint32_t)0x00000014)
+#define DHR12RD_OFFSET ((uint32_t)0x00000020)
 
 /* DOR register offset */
-#define DOR_OFFSET         ((uint32_t)0x0000002C)
+#define DOR_OFFSET ((uint32_t)0x0000002C)
 
 /*********************************************************************
  * @fn      DAC_DeInit
@@ -34,8 +35,7 @@
  *
  * @return  none
  */
-void DAC_DeInit(void)
-{
+void DAC_DeInit(void) {
     RCC_APB1PeriphResetCmd(RCC_APB1Periph_DAC, ENABLE);
     RCC_APB1PeriphResetCmd(RCC_APB1Periph_DAC, DISABLE);
 }
@@ -53,14 +53,13 @@ void DAC_DeInit(void)
  *
  * @return  none
  */
-void DAC_Init(uint32_t DAC_Channel, DAC_InitTypeDef *DAC_InitStruct)
-{
+void DAC_Init(uint32_t DAC_Channel, DAC_InitTypeDef *DAC_InitStruct) {
     uint32_t tmpreg1 = 0, tmpreg2 = 0;
 
     tmpreg1 = DAC->CTLR;
     tmpreg1 &= ~(CTLR_CLEAR_MASK << DAC_Channel);
-    tmpreg2 = (DAC_InitStruct->DAC_Trigger | DAC_InitStruct->DAC_WaveGeneration |
-               DAC_InitStruct->DAC_LFSRUnmask_TriangleAmplitude | DAC_InitStruct->DAC_OutputBuffer);
+    tmpreg2 = (DAC_InitStruct->DAC_Trigger | DAC_InitStruct->DAC_WaveGeneration | DAC_InitStruct->DAC_LFSRUnmask_TriangleAmplitude |
+               DAC_InitStruct->DAC_OutputBuffer);
     tmpreg1 |= tmpreg2 << DAC_Channel;
     DAC->CTLR = tmpreg1;
 }
@@ -74,8 +73,7 @@ void DAC_Init(uint32_t DAC_Channel, DAC_InitTypeDef *DAC_InitStruct)
  *
  * @return  none
  */
-void DAC_StructInit(DAC_InitTypeDef *DAC_InitStruct)
-{
+void DAC_StructInit(DAC_InitTypeDef *DAC_InitStruct) {
     DAC_InitStruct->DAC_Trigger = DAC_Trigger_None;
     DAC_InitStruct->DAC_WaveGeneration = DAC_WaveGeneration_None;
     DAC_InitStruct->DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bit0;
@@ -94,14 +92,10 @@ void DAC_StructInit(DAC_InitTypeDef *DAC_InitStruct)
  *
  * @return  none
  */
-void DAC_Cmd(uint32_t DAC_Channel, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void DAC_Cmd(uint32_t DAC_Channel, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         DAC->CTLR |= (DAC_EN1 << DAC_Channel);
-    }
-    else
-    {
+    } else {
         DAC->CTLR &= ~(DAC_EN1 << DAC_Channel);
     }
 }
@@ -118,14 +112,10 @@ void DAC_Cmd(uint32_t DAC_Channel, FunctionalState NewState)
  *
  * @return  none
  */
-void DAC_DMACmd(uint32_t DAC_Channel, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void DAC_DMACmd(uint32_t DAC_Channel, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         DAC->CTLR |= (DAC_DMAEN1 << DAC_Channel);
-    }
-    else
-    {
+    } else {
         DAC->CTLR &= ~(DAC_DMAEN1 << DAC_Channel);
     }
 }
@@ -142,14 +132,10 @@ void DAC_DMACmd(uint32_t DAC_Channel, FunctionalState NewState)
  *
  * @return  none
  */
-void DAC_SoftwareTriggerCmd(uint32_t DAC_Channel, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void DAC_SoftwareTriggerCmd(uint32_t DAC_Channel, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         DAC->SWTR |= (uint32_t)DAC_SWTRIG1 << (DAC_Channel >> 4);
-    }
-    else
-    {
+    } else {
         DAC->SWTR &= ~((uint32_t)DAC_SWTRIG1 << (DAC_Channel >> 4));
     }
 }
@@ -163,14 +149,10 @@ void DAC_SoftwareTriggerCmd(uint32_t DAC_Channel, FunctionalState NewState)
  *
  * @return  none
  */
-void DAC_DualSoftwareTriggerCmd(FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void DAC_DualSoftwareTriggerCmd(FunctionalState NewState) {
+    if (NewState != DISABLE) {
         DAC->SWTR |= DUAL_SWTR_SET;
-    }
-    else
-    {
+    } else {
         DAC->SWTR &= DUAL_SWTR_RESET;
     }
 }
@@ -190,14 +172,10 @@ void DAC_DualSoftwareTriggerCmd(FunctionalState NewState)
  *
  * @return  none
  */
-void DAC_WaveGenerationCmd(uint32_t DAC_Channel, uint32_t DAC_Wave, FunctionalState NewState)
-{
-    if(NewState != DISABLE)
-    {
+void DAC_WaveGenerationCmd(uint32_t DAC_Channel, uint32_t DAC_Wave, FunctionalState NewState) {
+    if (NewState != DISABLE) {
         DAC->CTLR |= DAC_Wave << DAC_Channel;
-    }
-    else
-    {
+    } else {
         DAC->CTLR &= ~(DAC_Wave << DAC_Channel);
     }
 }
@@ -215,8 +193,7 @@ void DAC_WaveGenerationCmd(uint32_t DAC_Channel, uint32_t DAC_Wave, FunctionalSt
  *
  * @return  none
  */
-void DAC_SetChannel1Data(uint32_t DAC_Align, uint16_t Data)
-{
+void DAC_SetChannel1Data(uint32_t DAC_Align, uint16_t Data) {
     __IO uint32_t tmp = 0;
 
     tmp = (uint32_t)DAC_BASE;
@@ -238,8 +215,7 @@ void DAC_SetChannel1Data(uint32_t DAC_Align, uint16_t Data)
  *
  * @return  none
  */
-void DAC_SetChannel2Data(uint32_t DAC_Align, uint16_t Data)
-{
+void DAC_SetChannel2Data(uint32_t DAC_Align, uint16_t Data) {
     __IO uint32_t tmp = 0;
 
     tmp = (uint32_t)DAC_BASE;
@@ -263,16 +239,12 @@ void DAC_SetChannel2Data(uint32_t DAC_Align, uint16_t Data)
  *
  * @return  none
  */
-void DAC_SetDualChannelData(uint32_t DAC_Align, uint16_t Data2, uint16_t Data1)
-{
+void DAC_SetDualChannelData(uint32_t DAC_Align, uint16_t Data2, uint16_t Data1) {
     uint32_t data = 0, tmp = 0;
 
-    if(DAC_Align == DAC_Align_8b_R)
-    {
+    if (DAC_Align == DAC_Align_8b_R) {
         data = ((uint32_t)Data2 << 8) | Data1;
-    }
-    else
-    {
+    } else {
         data = ((uint32_t)Data2 << 16) | Data1;
     }
 
@@ -293,8 +265,7 @@ void DAC_SetDualChannelData(uint32_t DAC_Align, uint16_t Data2, uint16_t Data1)
  *
  * @return  none
  */
-uint16_t DAC_GetDataOutputValue(uint32_t DAC_Channel)
-{
+uint16_t DAC_GetDataOutputValue(uint32_t DAC_Channel) {
     __IO uint32_t tmp = 0;
 
     tmp = (uint32_t)DAC_BASE;
