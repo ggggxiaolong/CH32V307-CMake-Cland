@@ -1,35 +1,37 @@
 /********************************** (C) COPYRIGHT  *******************************
  * File Name          : core_riscv.h
  * Author             : WCH
- * Version            : V1.0.2
- * Date               : 2025/03/06
- * Description        : RISC-V V4 Core Peripheral Access Layer Header File for CH32V30x
- *********************************************************************************
+ * Version            : V1.0.0
+ * Date               : 2021/06/06
+ * Description        : RISC-V Core Peripheral Access Layer Header File for CH32V30x
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #ifndef __CORE_RISCV_H__
 #define __CORE_RISCV_H__
 
 #include <stdint.h>
 
-#if !defined(CH32V30x_D8) && !defined(CH32V30x_D8C)
-// #define CH32V30x_D8              /* CH32V303x */
-#define CH32V30x_D8C /* CH32V307x-CH32V305x-CH32V317x */
-
-#endif
-
+// #include "../Peripheral/inc/ch32v30x.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdbool.h>
+
+#if !defined(CH32V30x_D8) && !defined(CH32V30x_D8C)
+// #define CH32V30x_D8              /* CH32V303x */
+#define CH32V30x_D8C /* CH32V307x-CH32V305x */
+
+#endif
+
 /* IO definitions */
 #ifdef __cplusplus
-#define __I volatile /* defines 'read only' permissions    */
+#define __I volatile /* defines 'read only' permissions */
 #else
-#define __I volatile const /* defines 'read only' permissions    */
+#define __I volatile const /* defines 'read only' permissions */
 #endif
-#define __O volatile  /* defines 'write only' permissions   */
+#define __O volatile  /* defines 'write only' permissions */
 #define __IO volatile /* defines 'read / write' permissions */
 
 /* Interrupt Number Definition, according to the selected device */
@@ -93,6 +95,7 @@ typedef enum IRQn {
     TIM8_TRG_COM_IRQn = 61,    /* TIM8 Trigger and Commutation Interrupt               */
     TIM8_CC_IRQn = 62,         /* TIM8 Capture Compare Interrupt                       */
     RNG_IRQn = 63,             /* RNG global Interrupt                                 */
+    FSMC_IRQn = 64,            /* FSMC global Interrupt                                */
     SDIO_IRQn = 65,            /* SDIO global Interrupt                                */
     TIM5_IRQn = 66,            /* TIM5 global Interrupt                                */
     SPI3_IRQn = 67,            /* SPI3 global Interrupt                                */
@@ -105,7 +108,7 @@ typedef enum IRQn {
     DMA2_Channel3_IRQn = 74,   /* DMA2 Channel 3 global Interrupt                      */
     DMA2_Channel4_IRQn = 75,   /* DMA2 Channel 4 global Interrupt                      */
     DMA2_Channel5_IRQn = 76,   /* DMA2 Channel 5 global Interrupt                      */
-    USBFS_IRQn = 83,           /* USBFS global Interrupt                               */
+    OTG_FS_IRQn = 83,          /* OTGFS global Interrupt                               */
     UART6_IRQn = 87,           /* UART6 global Interrupt                               */
     UART7_IRQn = 88,           /* UART7 global Interrupt                               */
     UART8_IRQn = 89,           /* UART8 global Interrupt                               */
@@ -131,6 +134,7 @@ typedef enum IRQn {
     TIM8_TRG_COM_IRQn = 61,    /* TIM8 Trigger and Commutation Interrupt               */
     TIM8_CC_IRQn = 62,         /* TIM8 Capture Compare Interrupt                       */
     RNG_IRQn = 63,             /* RNG global Interrupt                                 */
+    FSMC_IRQn = 64,            /* FSMC global Interrupt                                */
     SDIO_IRQn = 65,            /* SDIO global Interrupt                                */
     TIM5_IRQn = 66,            /* TIM5 global Interrupt                                */
     SPI3_IRQn = 67,            /* SPI3 global Interrupt                                */
@@ -149,7 +153,7 @@ typedef enum IRQn {
     CAN2_RX0_IRQn = 80,        /* CAN2 RX0 Interrupts                                  */
     CAN2_RX1_IRQn = 81,        /* CAN2 RX1 Interrupt                                   */
     CAN2_SCE_IRQn = 82,        /* CAN2 SCE Interrupt                                   */
-    USBFS_IRQn = 83,           /* USBFS global Interrupt                               */
+    OTG_FS_IRQn = 83,          /* OTGFS global Interrupt                               */
     USBHSWakeup_IRQn = 84,     /* USBHS WakeUp Interrupt                               */
     USBHS_IRQn = 85,           /* USBHS global Interrupt                               */
     DVP_IRQn = 86,             /* DVP global Interrupt                                 */
@@ -200,11 +204,6 @@ typedef __IO uint32_t vu32;
 typedef __IO uint16_t vu16;
 typedef __IO uint8_t vu8;
 
-typedef uint64_t u64;
-typedef uint32_t u32;
-typedef uint16_t u16;
-typedef uint8_t u8;
-
 typedef __IO int64_t vs64;
 typedef __IO int32_t vs32;
 typedef __IO int16_t vs16;
@@ -215,11 +214,17 @@ typedef int32_t s32;
 typedef int16_t s16;
 typedef int8_t s8;
 
+#define DISABLE (false)
+#define ENABLE (true)
+
+typedef bool FunctionalState;
+
 typedef enum { NoREADY = 0, READY = !NoREADY } ErrorStatus;
-
-typedef enum { DISABLE = 0, ENABLE = !DISABLE } FunctionalState;
-
-typedef enum { RESET = 0, SET = !RESET } FlagStatus, ITStatus;
+// typedef enum {DISABLE = 0, ENABLE = 1} FunctionalState;
+#define RESET (false)
+#define SET (true)
+typedef bool FlagStatus;
+typedef bool ITStatus;
 
 #define RV_STATIC_INLINE static inline
 
@@ -252,10 +257,10 @@ typedef struct {
 
 /* memory mapped structure for SysTick */
 typedef struct {
-    __IO uint32_t CTLR;  // 控制寄存器（Control Register），用于配置定时器使能、时钟源等。
-    __IO uint32_t SR;    // 状态寄存器（Status Register），反映定时器的状态标志
-    __IO uint64_t CNT;   // 计数器寄存器（Counter Register），当前计数值。
-    __IO uint64_t CMP;   // 比较寄存器（Compare Register），设定触发中断的计数值。
+    vu32 CTLR;
+    vu32 SR;
+    vu64 CNT;
+    vu64 CMP;
 } SysTick_Type;
 
 #define PFIC ((PFIC_Type *)0xE000E000)
@@ -273,7 +278,7 @@ typedef struct {
  *
  * @return  none
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void __enable_irq() { __asm volatile("csrs 0x800, %0" : : "r"(0x88)); }
+RV_STATIC_INLINE void __enable_irq() { __asm volatile("csrw 0x800, %0" : : "r"(0x6088)); }
 
 /*********************************************************************
  * @fn      __disable_irq
@@ -282,10 +287,7 @@ __attribute__((always_inline)) RV_STATIC_INLINE void __enable_irq() { __asm vola
  *
  * @return  none
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void __disable_irq() {
-    __asm volatile("csrc 0x800, %0" : : "r"(0x88));
-    __asm volatile("fence.i");
-}
+RV_STATIC_INLINE void __disable_irq() { __asm volatile("csrw 0x800, %0" : : "r"(0x6000)); }
 
 /*********************************************************************
  * @fn      __NOP
@@ -294,46 +296,41 @@ __attribute__((always_inline)) RV_STATIC_INLINE void __disable_irq() {
  *
  * @return  none
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void __NOP() { __asm volatile("nop"); }
+RV_STATIC_INLINE void __NOP() { __asm volatile("nop"); }
 
 /*********************************************************************
  * @fn      NVIC_EnableIRQ
  *
  * @brief   Enable Interrupt
  *
- * @param   IRQn - Interrupt Numbers
+ * @param   IRQn: Interrupt Numbers
  *
  * @return  none
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void NVIC_EnableIRQ(IRQn_Type IRQn) {
-    NVIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
-}
+RV_STATIC_INLINE void NVIC_EnableIRQ(IRQn_Type IRQn) { NVIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); }
 
 /*********************************************************************
  * @fn      NVIC_DisableIRQ
  *
  * @brief   Disable Interrupt
  *
- * @param   IRQn - Interrupt Numbers
+ * @param   IRQn: Interrupt Numbers
  *
  * @return  none
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void NVIC_DisableIRQ(IRQn_Type IRQn) {
-    NVIC->IRER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
-    __asm volatile("fence.i");
-}
+RV_STATIC_INLINE void NVIC_DisableIRQ(IRQn_Type IRQn) { NVIC->IRER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); }
 
 /*********************************************************************
  * @fn      NVIC_GetStatusIRQ
  *
  * @brief   Get Interrupt Enable State
  *
- * @param   IRQn - Interrupt Numbers
+ * @param   IRQn: Interrupt Numbers
  *
  * @return  1 - Interrupt Enable
  *          0 - Interrupt Disable
  */
-__attribute__((always_inline)) RV_STATIC_INLINE uint32_t NVIC_GetStatusIRQ(IRQn_Type IRQn) {
+RV_STATIC_INLINE uint32_t NVIC_GetStatusIRQ(IRQn_Type IRQn) {
     return ((uint32_t)((NVIC->ISR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F))) ? 1 : 0));
 }
 
@@ -342,12 +339,12 @@ __attribute__((always_inline)) RV_STATIC_INLINE uint32_t NVIC_GetStatusIRQ(IRQn_
  *
  * @brief   Get Interrupt Pending State
  *
- * @param   IRQn - Interrupt Numbers
+ * @param   IRQn: Interrupt Numbers
  *
  * @return  1 - Interrupt Pending Enable
  *          0 - Interrupt Pending Disable
  */
-__attribute__((always_inline)) RV_STATIC_INLINE uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn) {
+RV_STATIC_INLINE uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn) {
     return ((uint32_t)((NVIC->IPR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F))) ? 1 : 0));
 }
 
@@ -356,38 +353,34 @@ __attribute__((always_inline)) RV_STATIC_INLINE uint32_t NVIC_GetPendingIRQ(IRQn
  *
  * @brief   Set Interrupt Pending
  *
- * @param   IRQn - Interrupt Numbers
+ * @param   IRQn: Interrupt Numbers
  *
- * @return  none
+ * @return  None
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void NVIC_SetPendingIRQ(IRQn_Type IRQn) {
-    NVIC->IPSR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
-}
+RV_STATIC_INLINE void NVIC_SetPendingIRQ(IRQn_Type IRQn) { NVIC->IPSR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); }
 
 /*********************************************************************
  * @fn      NVIC_ClearPendingIRQ
  *
  * @brief   Clear Interrupt Pending
  *
- * @param   IRQn - Interrupt Numbers
+ * @param   IRQn: Interrupt Numbers
  *
- * @return  none
+ * @return  None
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn) {
-    NVIC->IPRR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
-}
+RV_STATIC_INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn) { NVIC->IPRR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); }
 
 /*********************************************************************
  * @fn      NVIC_GetActive
  *
  * @brief   Get Interrupt Active State
  *
- * @param   IRQn - Interrupt Numbers
+ * @param   IRQn: Interrupt Numbers
  *
  * @return  1 - Interrupt Active
  *          0 - Interrupt No Active
  */
-__attribute__((always_inline)) RV_STATIC_INLINE uint32_t NVIC_GetActive(IRQn_Type IRQn) {
+RV_STATIC_INLINE uint32_t NVIC_GetActive(IRQn_Type IRQn) {
     return ((uint32_t)((NVIC->IACTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F))) ? 1 : 0));
 }
 
@@ -397,62 +390,23 @@ __attribute__((always_inline)) RV_STATIC_INLINE uint32_t NVIC_GetActive(IRQn_Typ
  * @brief   Set Interrupt Priority
  *
  * @param   IRQn - Interrupt Numbers
- *          interrupt nesting enable-8 Level(CSR-0x804 bit1 = 1 bit[3:2] = 3)
- *            priority - bit[7:5] - Preemption Priority
- *                       bit[4:0] - Reserve
- *          interrupt nesting enable-4 Level(CSR-0x804 bit1 = 1 bit[3:2] = 2)
- *            priority - bit[7:6] - Preemption Priority
- *                       bit[5] - Sub priority
- *                       bit[4:0] - Reserve
- *          interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
- *            priority - bit[7] - Preemption Priority
- *                       bit[6:5] - Sub priority
- *                       bit[4:0] - Reserve
- *          interrupt nesting disable(CSR-0x804 bit1 = 0)
- *            priority - bit[7:5] - Sub priority
- *                       bit[4:0] - Reserve
- *
- * @return  none
+ *          priority -
+ *              bit7 - pre-emption priority
+ *              bit6~bit4 - subpriority
+ * @return  None
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint8_t priority) { NVIC->IPRIOR[(uint32_t)(IRQn)] = priority; }
+RV_STATIC_INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint8_t priority) { NVIC->IPRIOR[(uint32_t)(IRQn)] = priority; }
 
 /*********************************************************************
  * @fn      __WFI
  *
  * @brief   Wait for Interrupt
  *
- * @return  none
+ * @return  None
  */
 __attribute__((always_inline)) RV_STATIC_INLINE void __WFI(void) {
-    NVIC->SCTLR = NVIC->SCTLR & (~(1 << 3));  // wfi
-    asm volatile("wfi");
-}
-
-/*********************************************************************
- * @fn      _SEV
- *
- * @brief   Set Event
- *
- * @return  none
- */
-__attribute__((always_inline)) RV_STATIC_INLINE void _SEV(void) {
-    uint32_t t;
-
-    t = NVIC->SCTLR;
-    NVIC->SCTLR |= (1 << 3) | (1 << 5);
-    NVIC->SCTLR = (NVIC->SCTLR & ~(1 << 5)) | (t & (1 << 5));
-}
-
-/*********************************************************************
- * @fn      _WFE
- *
- * @brief   Wait for Events
- *
- * @return  none
- */
-__attribute__((always_inline)) RV_STATIC_INLINE void _WFE(void) {
-    NVIC->SCTLR |= (1 << 3);
-    asm volatile("wfi");
+    NVIC->SCTLR &= ~(1u << 3);  // wfi
+    __asm volatile("wfi");
 }
 
 /*********************************************************************
@@ -460,12 +414,16 @@ __attribute__((always_inline)) RV_STATIC_INLINE void _WFE(void) {
  *
  * @brief   Wait for Events
  *
- * @return  none
+ * @return  None
  */
 __attribute__((always_inline)) RV_STATIC_INLINE void __WFE(void) {
-    _SEV();
-    _WFE();
-    _WFE();
+    uint32_t t;
+
+    t = NVIC->SCTLR;
+    NVIC->SCTLR |= (1 << 3) | (1 << 5);  // (wfi->wfe)+(__sev)
+    NVIC->SCTLR = (NVIC->SCTLR & ~(1u << 5)) | (t & (1u << 5));
+    __asm volatile("wfi");
+    __asm volatile("wfi");
 }
 
 /*********************************************************************
@@ -477,10 +435,9 @@ __attribute__((always_inline)) RV_STATIC_INLINE void __WFE(void) {
  *          IRQn -Interrupt Numbers
  *          num - VTF Interrupt Numbers
  *          NewState - DISABLE or ENABLE
- *
- * @return  none
+ * @return  None
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void SetVTFIRQ(uint32_t addr, IRQn_Type IRQn, uint8_t num, FunctionalState NewState) {
+RV_STATIC_INLINE void SetVTFIRQ(uint32_t addr, IRQn_Type IRQn, uint8_t num, FunctionalState NewState) {
     if (num > 3) return;
 
     if (NewState != DISABLE) {
@@ -488,7 +445,7 @@ __attribute__((always_inline)) RV_STATIC_INLINE void SetVTFIRQ(uint32_t addr, IR
         NVIC->VTFADDR[num] = ((addr & 0xFFFFFFFE) | 0x1);
     } else {
         NVIC->VTFIDR[num] = IRQn;
-        NVIC->VTFADDR[num] = ((addr & 0xFFFFFFFE) & (~0x1));
+        NVIC->VTFADDR[num] = ((addr & 0xFFFFFFFE) & (~0x1u));
     }
 }
 
@@ -497,169 +454,9 @@ __attribute__((always_inline)) RV_STATIC_INLINE void SetVTFIRQ(uint32_t addr, IR
  *
  * @brief   Initiate a system reset request
  *
- * @return  none
+ * @return  None
  */
-__attribute__((always_inline)) RV_STATIC_INLINE void NVIC_SystemReset(void) { NVIC->CFGR = NVIC_KEY3 | (1 << 7); }
-
-/*********************************************************************
- * @fn      __AMOADD_W
- *
- * @brief   Atomic Add with 32bit value
- *          Atomically ADD 32bit value with value in memory using amoadd.d.
- *
- * @param   addr - Address pointer to data, address need to be 4byte aligned
- *          value - value to be ADDed
- *
- * @return  return memory value + add value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE int32_t __AMOADD_W(volatile int32_t *addr, int32_t value) {
-    int32_t result;
-
-    __asm volatile("amoadd.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
-
-/*********************************************************************
- * @fn     __AMOAND_W
- *
- * @brief  Atomic And with 32bit value
- *         Atomically AND 32bit value with value in memory using amoand.d.
- *
- * @param  addr - Address pointer to data, address need to be 4byte aligned
- *         value - value to be ANDed
- *
- * @return return memory value & and value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE int32_t __AMOAND_W(volatile int32_t *addr, int32_t value) {
-    int32_t result;
-
-    __asm volatile("amoand.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
-
-/*********************************************************************
- * @fn      __AMOMAX_W
- *
- * @brief   Atomic signed MAX with 32bit value
- *          Atomically signed max compare 32bit value with value in memory using amomax.d.
- * @param   addr - Address pointer to data, address need to be 4byte aligned
- *          value - value to be compared
- *
- * @return  return the bigger value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE int32_t __AMOMAX_W(volatile int32_t *addr, int32_t value) {
-    int32_t result;
-
-    __asm volatile("amomax.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
-
-/*********************************************************************
- * @fn     __AMOMAXU_W
- *
- * @brief  Atomic unsigned MAX with 32bit value
- *         Atomically unsigned max compare 32bit value with value in memory using amomaxu.d.
- *
- * @param  addr - Address pointer to data, address need to be 4byte aligned
- *         value - value to be compared
- *
- * @return return the bigger value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE uint32_t __AMOMAXU_W(volatile uint32_t *addr, uint32_t value) {
-    uint32_t result;
-
-    __asm volatile("amomaxu.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
-
-/*********************************************************************
- * @fn     __AMOMIN_W
- *
- * @brief  Atomic signed MIN with 32bit value
- *         Atomically signed min compare 32bit value with value in memory using amomin.d.
- *
- * @param  addr - Address pointer to data, address need to be 4byte aligned
- *         value - value to be compared
- *
- * @return return the smaller value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE int32_t __AMOMIN_W(volatile int32_t *addr, int32_t value) {
-    int32_t result;
-
-    __asm volatile("amomin.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
-
-/*********************************************************************
- * @fn      __AMOMINU_W
- *
- * @brief   Atomic unsigned MIN with 32bit value
- *          Atomically unsigned min compare 32bit value with value in memory using amominu.d.
- *
- * @param   addr - Address pointer to data, address need to be 4byte aligned
- *          value - value to be compared
- *
- * @return  return the smaller value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE uint32_t __AMOMINU_W(volatile uint32_t *addr, uint32_t value) {
-    uint32_t result;
-
-    __asm volatile("amominu.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
-
-/*********************************************************************
- * @fn       __AMOOR_W
- *
- * @brief    Atomic OR with 32bit value
- *           Atomically OR 32bit value with value in memory using amoor.d.
- *
- * @param    addr - Address pointer to data, address need to be 4byte aligned
- *           value - value to be ORed
- *
- * @return   return memory value | and value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE int32_t __AMOOR_W(volatile int32_t *addr, int32_t value) {
-    int32_t result;
-
-    __asm volatile("amoor.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
-
-/*********************************************************************
- * @fn      __AMOSWAP_W
- *
- * @brief   Atomically swap new 32bit value into memory using amoswap.d.
- *
- * @param   addr - Address pointer to data, address need to be 4byte aligned
- *          newval - New value to be stored into the address
- *
- * @return  return the original value in memory
- */
-__attribute__((always_inline)) RV_STATIC_INLINE uint32_t __AMOSWAP_W(volatile uint32_t *addr, uint32_t newval) {
-    uint32_t result;
-
-    __asm volatile("amoswap.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(newval) : "memory");
-    return result;
-}
-
-/*********************************************************************
- * @fn      __AMOXOR_W
- *
- * @brief   Atomic XOR with 32bit value
- *          Atomically XOR 32bit value with value in memory using amoxor.d.
- *
- * @param   addr - Address pointer to data, address need to be 4byte aligned
- *          value - value to be XORed
- *
- * @return  return memory value ^ and value
- */
-__attribute__((always_inline)) RV_STATIC_INLINE int32_t __AMOXOR_W(volatile int32_t *addr, int32_t value) {
-    int32_t result;
-
-    __asm volatile("amoxor.w %0, %2, %1" : "=r"(result), "+A"(*addr) : "r"(value) : "memory");
-    return *addr;
-}
+RV_STATIC_INLINE void NVIC_SystemReset(void) { NVIC->CFGR = NVIC_KEY3 | (1 << 7); }
 
 /* Core_Exported_Functions */
 extern uint32_t __get_FFLAGS(void);
@@ -672,6 +469,8 @@ extern uint32_t __get_MSTATUS(void);
 extern void __set_MSTATUS(uint32_t value);
 extern uint32_t __get_MISA(void);
 extern void __set_MISA(uint32_t value);
+extern uint32_t __get_MIE(void);
+extern void __set_MIE(uint32_t value);
 extern uint32_t __get_MTVEC(void);
 extern void __set_MTVEC(uint32_t value);
 extern uint32_t __get_MSCRATCH(void);

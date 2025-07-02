@@ -5,10 +5,8 @@
 * Date               : 2021/06/06
 * Description        : This file contains all the functions prototypes for the SDIO
 *                      firmware library.
-*********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
+* SPDX-License-Identifier: Apache-2.0
 *******************************************************************************/
 #ifndef __CH32V30x_SDIO_H
 #define __CH32V30x_SDIO_H
@@ -217,16 +215,6 @@ typedef struct
 #define SDIO_ReadWaitMode_CLK               ((uint32_t)0x00000001)
 #define SDIO_ReadWaitMode_DATA2             ((uint32_t)0x00000000)
 
-#define SDIO_DataControl_DTEN               ((uint32_t)0x00000001)
-#define SDIO_DataControl_DTDIR              ((uint32_t)0x00000002)
-#define SDIO_DataControl_DTMODE             ((uint32_t)0x00000004)
-#define SDIO_DataControl_DMAEN              ((uint32_t)0x00000008)
-#define SDIO_DataControl_DBLOCKSIZE         ((uint32_t)0x000000F0)
-#define SDIO_DataControl_RWSTART            ((uint32_t)0x00000100)
-#define SDIO_DataControl_RWSTOP             ((uint32_t)0x00000200)
-#define SDIO_DataControl_RWMOD              ((uint32_t)0x00000400)
-#define SDIO_DataControl_SDIOEN             ((uint32_t)0x00000800)
-
 
 void SDIO_DeInit(void);
 void SDIO_Init(SDIO_InitTypeDef* SDIO_InitStruct);
@@ -236,11 +224,11 @@ void SDIO_SetPowerState(uint32_t SDIO_PowerState);
 uint32_t SDIO_GetPowerState(void);
 void SDIO_ITConfig(uint32_t SDIO_IT, FunctionalState NewState);
 void SDIO_DMACmd(FunctionalState NewState);
-void SDIO_SendCommand(SDIO_CmdInitTypeDef *SDIO_CmdInitStruct);
+void SDIO_SendCommand(const SDIO_CmdInitTypeDef *SDIO_CmdInitStruct);
 void SDIO_CmdStructInit(SDIO_CmdInitTypeDef* SDIO_CmdInitStruct);
 uint8_t SDIO_GetCommandResponse(void);
 uint32_t SDIO_GetResponse(uint32_t SDIO_RESP);
-void SDIO_DataConfig(SDIO_DataInitTypeDef* SDIO_DataInitStruct);
+void SDIO_DataConfig(const SDIO_DataInitTypeDef* SDIO_DataInitStruct);
 void SDIO_DataStructInit(SDIO_DataInitTypeDef* SDIO_DataInitStruct);
 uint32_t SDIO_GetDataCounter(void);
 uint32_t SDIO_ReadData(void);

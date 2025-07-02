@@ -1,13 +1,11 @@
 /********************************** (C) COPYRIGHT  *******************************
  * File Name          : ch32v30x_can.c
  * Author             : WCH
- * Version            : V1.0.1
- * Date               : 2025/04/06
+ * Version            : V1.0.0
+ * Date               : 2021/06/06
  * Description        : This file provides all the CAN firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #include "../inc/ch32v30x_can.h"
 
@@ -81,80 +79,9 @@ void CAN_DeInit(CAN_TypeDef *CANx) {
  *             CAN_InitStatus_Failed.
  *             CAN_InitStatus_Success.
  */
-uint8_t CAN_Init(CAN_TypeDef *CANx, CAN_InitTypeDef *CAN_InitStruct) {
+uint8_t CAN_Init(CAN_TypeDef *CANx, const CAN_InitTypeDef *CAN_InitStruct) {
     uint8_t InitStatus = CAN_InitStatus_Failed;
     uint32_t wait_ack = 0x00000000;
-    uint32_t chipid = DBGMCU_GetCHIPID();
-    uint32_t chippackid = (chipid >> 4) & 0xf;
-    if (chippackid >= 4 && chippackid <= 7) {
-        if (CAN1 == CANx) {
-            (*(__IO uint32_t *)(0x40021010)) |= 0x2000000;
-            (*(__IO uint32_t *)(0x40021010)) &= ~(0x2000000);
-        } else if (CAN2 == CANx) {
-            (*(__IO uint32_t *)(0x40021010)) |= 0x4000000;
-            (*(__IO uint32_t *)(0x40021010)) &= ~(0x4000000);
-        }
-
-        CANx->CTLR &= ~0x2;
-        CANx->CTLR |= 0x1;
-
-        while (!(CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF)) {
-            wait_ack++;
-        }
-
-        if ((CANx->STATR & 0x1)) {
-            CANx->BTIMR = (uint32_t)0xC1100000 | ((uint32_t)SystemCoreClock /
-                                                      (((((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x7) < 0x4)
-                                                           ? 1
-                                                           : (uint32_t)0x2 << (((*(__IO uint32_t *)(0x40021004)) >> 8) & 0x3)) /
-                                                      4000000 -
-                                                  1);
-        } else {
-            return CAN_InitStatus_Failed;
-        }
-        CANx->CTLR &= ~0x1;
-        wait_ack = 0;
-        while ((CANx->STATR & 0x1) && (wait_ack != 0x0000FFFF)) {
-            wait_ack++;
-        }
-
-        if ((CANx->STATR & 0x1)) {
-            return CAN_InitStatus_Failed;
-        }
-
-        (*(__IO uint32_t *)(0x4000660C)) |= 0x3;
-        (*(__IO uint32_t *)(0x40006640)) = 0x0;
-        (*(__IO uint32_t *)(0x40006644)) = 0x0;
-        (*(__IO uint32_t *)(0x40006648)) = 0x0;
-        (*(__IO uint32_t *)(0x4000664C)) = 0x0;
-        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;
-        (*(__IO uint32_t *)(0x40006600)) &= ~0x1;
-        CAN_SlaveStartBank(1);
-        if (CAN1 == CANx) {
-            (*(__IO uint32_t *)(0x40006580)) |= 0x3;
-            while (!((*(__IO uint32_t *)(0x4000640C)) & 0x3));
-            (*(__IO uint32_t *)(0x4000640C)) = 0x38;
-        } else if (CAN2 == CANx) {
-            (*(__IO uint32_t *)(0x40006980)) |= 0x3;
-            while (!((*(__IO uint32_t *)(0x4000680C)) & 0x3));
-            (*(__IO uint32_t *)(0x4000680C)) = 0x38;
-        }
-
-        if (CAN1 == CANx) {
-            (*(__IO uint32_t *)(0x40021010)) |= 0x2000000;
-            (*(__IO uint32_t *)(0x40021010)) &= ~(0x2000000);
-        } else if (CAN2 == CANx) {
-            (*(__IO uint32_t *)(0x40021010)) |= 0x4000000;
-            (*(__IO uint32_t *)(0x40021010)) &= ~(0x4000000);
-        }
-
-        (*(__IO uint32_t *)(0x40006600)) |= 0x1;
-        (*(__IO uint32_t *)(0x4000660C)) |= 0x3;
-        (*(__IO uint32_t *)(0x4000661C)) |= 0x3;
-        (*(__IO uint32_t *)(0x40006600)) &= ~0x1;
-        CAN_SlaveStartBank(1);
-        wait_ack = 0;
-    }
 
     CANx->CTLR &= (~(uint32_t)CAN_CTLR_SLEEP);
     CANx->CTLR |= CAN_CTLR_INRQ;
@@ -233,7 +160,7 @@ uint8_t CAN_Init(CAN_TypeDef *CANx, CAN_InitTypeDef *CAN_InitStruct) {
  *
  * @return  none
  */
-void CAN_FilterInit(CAN_FilterInitTypeDef *CAN_FilterInitStruct) {
+void CAN_FilterInit(const CAN_FilterInitTypeDef *CAN_FilterInitStruct) {
     uint32_t filter_number_bit_pos = 0;
 
     filter_number_bit_pos = ((uint32_t)1) << CAN_FilterInitStruct->CAN_FilterNumber;
@@ -349,9 +276,6 @@ void CAN_DBGFreeze(CAN_TypeDef *CANx, FunctionalState NewState) {
  *
  * @param   CANx - where x can be 1 to select the CAN peripheral.
  *          NewState - ENABLE or DISABLE.
- *          Note-
- *          DLC must be programmed as 8 in order Time Stamp (2 bytes) to be
- *          sent over the CAN bus.
  *
  * @return  none
  */
@@ -383,8 +307,10 @@ void CAN_TTComModeCmd(CAN_TypeDef *CANx, FunctionalState NewState) {
  * @return  transmit_mailbox - The number of the mailbox that is used for
  *        transmission or CAN_TxStatus_NoMailBox if there is no empty mailbox.
  */
-uint8_t CAN_Transmit(CAN_TypeDef *CANx, CanTxMsg *TxMessage) {
+uint8_t CAN_Transmit(CAN_TypeDef *CANx, const CanTxMsg *TxMessage) {
     uint8_t transmit_mailbox = 0;
+    uint32_t data_l = 0;
+    uint32_t data_h = 0;
 
     if ((CANx->TSTATR & CAN_TSTATR_TME0) == CAN_TSTATR_TME0) {
         transmit_mailbox = 0;
@@ -404,14 +330,35 @@ uint8_t CAN_Transmit(CAN_TypeDef *CANx, CanTxMsg *TxMessage) {
             CANx->sTxMailBox[transmit_mailbox].TXMIR |= ((TxMessage->ExtId << 3) | TxMessage->IDE | TxMessage->RTR);
         }
 
-        TxMessage->DLC &= (uint8_t)0x0000000F;
         CANx->sTxMailBox[transmit_mailbox].TXMDTR &= (uint32_t)0xFFFFFFF0;
-        CANx->sTxMailBox[transmit_mailbox].TXMDTR |= TxMessage->DLC;
+        CANx->sTxMailBox[transmit_mailbox].TXMDTR |= TxMessage->DLC & 0x0F;
 
-        CANx->sTxMailBox[transmit_mailbox].TXMDLR = (((uint32_t)TxMessage->Data[3] << 24) | ((uint32_t)TxMessage->Data[2] << 16) |
-                                                     ((uint32_t)TxMessage->Data[1] << 8) | ((uint32_t)TxMessage->Data[0]));
-        CANx->sTxMailBox[transmit_mailbox].TXMDHR = (((uint32_t)TxMessage->Data[7] << 24) | ((uint32_t)TxMessage->Data[6] << 16) |
-                                                     ((uint32_t)TxMessage->Data[5] << 8) | ((uint32_t)TxMessage->Data[4]));
+        if (TxMessage->DLC && (TxMessage->RTR != CAN_RTR_Remote)) {
+            switch (TxMessage->DLC) {
+                case 8:
+                    data_h |= (((uint32_t)TxMessage->Data[7] << 24));
+                case 7:
+                    data_h |= (((uint32_t)TxMessage->Data[6] << 16));
+                case 6:
+                    data_h |= (((uint32_t)TxMessage->Data[5] << 8));
+                case 5:
+                    data_h |= (((uint32_t)TxMessage->Data[4] << 0));
+                case 4:
+                    data_l |= (((uint32_t)TxMessage->Data[3] << 24));
+                case 3:
+                    data_l |= (((uint32_t)TxMessage->Data[2] << 16));
+                case 2:
+                    data_l |= (((uint32_t)TxMessage->Data[1] << 8));
+                case 1:
+                    data_l |= (((uint32_t)TxMessage->Data[0] << 0));
+                case 0:
+                default:
+                    break;
+            }
+        }
+
+        CANx->sTxMailBox[transmit_mailbox].TXMDHR = data_h;
+        CANx->sTxMailBox[transmit_mailbox].TXMDLR = data_l;
         CANx->sTxMailBox[transmit_mailbox].TXMIR |= TMIDxR_TXRQ;
     }
 
@@ -536,30 +483,27 @@ void CAN_CancelTransmit(CAN_TypeDef *CANx, uint8_t Mailbox) {
  * @return  none
  */
 void CAN_Receive(CAN_TypeDef *CANx, uint8_t FIFONumber, CanRxMsg *RxMessage) {
-    RxMessage->IDE = (uint8_t)0x04 & CANx->sFIFOMailBox[FIFONumber].RXMIR;
+    uint32_t rxmir = CANx->sFIFOMailBox[FIFONumber].RXMIR;
+    uint32_t rxmdtr = CANx->sFIFOMailBox[FIFONumber].RXMDTR;
+    RxMessage->IDE = (uint8_t)0x04 & rxmir;
 
     if (RxMessage->IDE == CAN_Id_Standard) {
-        RxMessage->StdId = (uint32_t)0x000007FF & (CANx->sFIFOMailBox[FIFONumber].RXMIR >> 21);
+        RxMessage->StdId = (uint32_t)0x000007FF & (rxmir >> 21);
     } else {
-        RxMessage->ExtId = (uint32_t)0x1FFFFFFF & (CANx->sFIFOMailBox[FIFONumber].RXMIR >> 3);
+        RxMessage->ExtId = (uint32_t)0x1FFFFFFF & (rxmir >> 3);
     }
 
-    RxMessage->RTR = (uint8_t)0x02 & CANx->sFIFOMailBox[FIFONumber].RXMIR;
-    RxMessage->DLC = (uint8_t)0x0F & CANx->sFIFOMailBox[FIFONumber].RXMDTR;
-    RxMessage->FMI = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDTR >> 8);
-    RxMessage->Data[0] = (uint8_t)0xFF & CANx->sFIFOMailBox[FIFONumber].RXMDLR;
-    RxMessage->Data[1] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDLR >> 8);
-    RxMessage->Data[2] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDLR >> 16);
-    RxMessage->Data[3] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDLR >> 24);
-    RxMessage->Data[4] = (uint8_t)0xFF & CANx->sFIFOMailBox[FIFONumber].RXMDHR;
-    RxMessage->Data[5] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDHR >> 8);
-    RxMessage->Data[6] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDHR >> 16);
-    RxMessage->Data[7] = (uint8_t)0xFF & (CANx->sFIFOMailBox[FIFONumber].RXMDHR >> 24);
+    RxMessage->RTR = (uint8_t)0x02 & rxmir;
+    RxMessage->DLC = (uint8_t)0x0F & rxmdtr;
+    RxMessage->FMI = (uint8_t)0xFF & (rxmdtr >> 8);
+
+    *(uint32_t *)&RxMessage->Data[0] = CANx->sFIFOMailBox[FIFONumber].RXMDLR;
+    *(uint32_t *)&RxMessage->Data[4] = CANx->sFIFOMailBox[FIFONumber].RXMDHR;
 
     if (FIFONumber == CAN_FIFO0) {
-        CANx->RFIFO0 |= CAN_RFIFO0_RFOM0;
+        CANx->RFIFO0 = CAN_RFIFO0_RFOM0 | CANx->RFIFO0;
     } else {
-        CANx->RFIFO1 |= CAN_RFIFO1_RFOM1;
+        CANx->RFIFO1 = CAN_RFIFO1_RFOM1 | CANx->RFIFO1;
     }
 }
 
@@ -749,13 +693,7 @@ uint8_t CAN_GetLastErrorCode(CAN_TypeDef *CANx) {
  * @brief   Returns the CANx Receive Error Counter (REC).
  *
  * @param   CANx - where x can be 1 to select the CAN peripheral.
- *         Note-
- *         In case of an error during reception, this counter is incremented
- *         by 1 or by 8 depending on the error condition as defined by the CAN
- *         standard. After every successful reception, the counter is
- *         decremented by 1 or reset to 120 if its value was higher than 128.
- *         When the counter value exceeds 127, the CAN controller enters the
- *         error passive state.
+ *
  * @return  counter - CAN Receive Error Counter.
  */
 uint8_t CAN_GetReceiveErrorCounter(CAN_TypeDef *CANx) {

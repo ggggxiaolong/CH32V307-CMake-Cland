@@ -37,13 +37,14 @@ void gpio_tb(hal::GpioIntf& gpio) {
     gpio.outpp();
     while (true) {
         gpio.set();
-        clock::delay(200ms);
+        clock::delay(1000ms);
         gpio.clr();
-        clock::delay(200ms);
+        clock::delay(1000ms);
     }
 }
 
 int main() {
+    // GPIO_INIT();
     ymd::sys::preinit();
     gpio_tb(hal::portB[4]);
 }

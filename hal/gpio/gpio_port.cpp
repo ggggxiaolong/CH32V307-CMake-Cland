@@ -17,7 +17,7 @@ void GpioPort::set_mode(const size_t index, const GpioMode mode) {
 }
 
 void GpioPort::enableRcc(const Enable en) {
-    auto state = en == EN ? FunctionalState::ENABLE : FunctionalState::DISABLE;
+    auto state = en.to_state();
     switch ((uint32_t)instance) {
 #ifdef ENABLE_GPIOA
         case GPIOA_BASE:

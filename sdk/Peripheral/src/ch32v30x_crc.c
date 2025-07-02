@@ -4,10 +4,8 @@
  * Version            : V1.0.0
  * Date               : 2021/06/06
  * Description        : This file provides all the CRC firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #include "../inc/ch32v30x_crc.h"
 
@@ -45,7 +43,7 @@ uint32_t CRC_CalcCRC(uint32_t Data) {
  *
  * @return  32-bit CRC.
  */
-uint32_t CRC_CalcBlockCRC(uint32_t pBuffer[], uint32_t BufferLength) {
+uint32_t CRC_CalcBlockCRC(const uint32_t pBuffer[], uint32_t BufferLength) {
     uint32_t index = 0;
 
     for (index = 0; index < BufferLength; index++) {

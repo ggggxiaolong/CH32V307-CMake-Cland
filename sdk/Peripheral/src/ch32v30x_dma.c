@@ -4,10 +4,8 @@
  * Version            : V1.0.0
  * Date               : 2021/06/06
  * Description        : This file provides all the DMA firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #include "../inc/ch32v30x_dma.h"
 
@@ -111,7 +109,7 @@ void DMA_DeInit(DMA_Channel_TypeDef *DMAy_Channelx) {
  *
  * @return  none
  */
-void DMA_Init(DMA_Channel_TypeDef *DMAy_Channelx, DMA_InitTypeDef *DMA_InitStruct) {
+void DMA_Init(DMA_Channel_TypeDef *DMAy_Channelx, const DMA_InitTypeDef *DMA_InitStruct) {
     uint32_t tmpreg = 0;
 
     tmpreg = DMAy_Channelx->CFGR;

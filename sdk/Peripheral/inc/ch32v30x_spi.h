@@ -5,11 +5,9 @@
 * Date               : 2021/06/06
 * Description        : This file contains all the functions prototypes for the  
 *                      SPI firmware library.
-*********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
+* SPDX-License-Identifier: Apache-2.0
+*******************************************************************************/ 
 #ifndef __CH32V30x_SPI_H
 #define __CH32V30x_SPI_H
 
@@ -192,8 +190,8 @@ typedef struct
 
 
 void SPI_I2S_DeInit(SPI_TypeDef* SPIx);
-void SPI_Init(SPI_TypeDef* SPIx, SPI_InitTypeDef* SPI_InitStruct);
-void I2S_Init(SPI_TypeDef* SPIx, I2S_InitTypeDef* I2S_InitStruct);
+void SPI_Init(SPI_TypeDef* SPIx, const SPI_InitTypeDef* SPI_InitStruct);
+void I2S_Init(SPI_TypeDef* SPIx, const I2S_InitTypeDef* I2S_InitStruct);
 void SPI_StructInit(SPI_InitTypeDef* SPI_InitStruct);
 void I2S_StructInit(I2S_InitTypeDef* I2S_InitStruct);
 void SPI_Cmd(SPI_TypeDef* SPIx, FunctionalState NewState);

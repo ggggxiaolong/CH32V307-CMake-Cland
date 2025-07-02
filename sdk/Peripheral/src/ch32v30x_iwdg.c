@@ -2,15 +2,14 @@
  * File Name          : ch32v30x_iwdg.c
  * Author             : WCH
  * Version            : V1.0.0
- * Date               : 2024/03/06
+ * Date               : 2021/06/06
  * Description        : This file provides all the IWDG firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #include "../inc/ch32v30x_iwdg.h"
 
+#include "../inc/ch32v30x_rcc.h"
 /* CTLR register bit mask */
 #define CTLR_KEY_Reload ((uint16_t)0xAAAA)
 #define CTLR_KEY_Enable ((uint16_t)0xCCCC)
@@ -77,10 +76,7 @@ void IWDG_ReloadCounter(void) { IWDG->CTLR = CTLR_KEY_Reload; }
  *
  * @return  none
  */
-void IWDG_Enable(void) {
-    IWDG->CTLR = CTLR_KEY_Enable;
-    while ((RCC->RSTSCKR & 0x2) == RESET);
-}
+void IWDG_Enable(void) { IWDG->CTLR = CTLR_KEY_Enable; }
 
 /*********************************************************************
  * @fn      IWDG_GetFlagStatus

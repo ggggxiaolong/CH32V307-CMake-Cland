@@ -4,11 +4,9 @@
  * Version            : V1.0.0
  * Date               : 2021/06/06
  * Description        : This file provides all the PWR firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
- *******************************************************************************/
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
 #include "../inc/ch32v30x_pwr.h"
 
 #include "../inc/ch32v30x_rcc.h"
@@ -73,14 +71,14 @@ void PWR_PVDCmd(FunctionalState NewState) {
  *        Detector(PVD).
  *
  * @param   PWR_PVDLevel - specifies the PVD detection level
- *            PWR_PVDLevel_MODE0 - PVD detection level set to mode 0.
- *            PWR_PVDLevel_MODE1 - PVD detection level set to mode 1.
- *            PWR_PVDLevel_MODE2 - PVD detection level set to mode 2.
- *            PWR_PVDLevel_MODE3 - PVD detection level set to mode 3.
- *            PWR_PVDLevel_MODE4 - PVD detection level set to mode 4.
- *            PWR_PVDLevel_MODE5 - PVD detection level set to mode 5.
- *            PWR_PVDLevel_MODE6 - PVD detection level set to mode 6.
- *            PWR_PVDLevel_MODE7 - PVD detection level set to mode 7.
+ *            PWR_PVDLevel_2V2 - PVD detection level set to 2.2V
+ *            PWR_PVDLevel_2V3 - PVD detection level set to 2.3V
+ *            PWR_PVDLevel_2V4 - PVD detection level set to 2.4V
+ *            PWR_PVDLevel_2V5 - PVD detection level set to 2.5V
+ *            PWR_PVDLevel_2V6 - PVD detection level set to 2.6V
+ *            PWR_PVDLevel_2V7 - PVD detection level set to 2.7V
+ *            PWR_PVDLevel_2V8 - PVD detection level set to 2.8V
+ *            PWR_PVDLevel_2V9 - PVD detection level set to 2.9V
  *
  * @return  none
  */
@@ -167,7 +165,7 @@ void PWR_EnterSTANDBYMode(void) {
  *            PWR_FLAG_SB - StandBy flag
  *            PWR_FLAG_PVDO - PVD Output
  *
- * @return  The new state of PWR_FLAG (SET or RESET).
+ * @return  none
  */
 FlagStatus PWR_GetFlagStatus(uint32_t PWR_FLAG) {
     FlagStatus bitstatus = RESET;
@@ -299,6 +297,7 @@ void PWR_EnterSTANDBYMode_RAM_LV_VBAT_EN(void) {
  * @brief   Enters STOP mode with RAM data retention function and LV mode on.
  *
  * @param   PWR_Regulator - specifies the regulator state in STOP mode.
+ *            PWR_Regulator_ON - STOP mode with regulator ON
  *            PWR_Regulator_LowPower - STOP mode with regulator in low power mode
  *          PWR_STOPEntry - specifies if STOP mode in entered with WFI or WFE instruction.
  *            PWR_STOPEntry_WFI - enter STOP mode with WFI instruction
@@ -312,6 +311,9 @@ void PWR_EnterSTOPMode_RAM_LV(uint32_t PWR_Regulator, uint8_t PWR_STOPEntry) {
     tmpreg &= CTLR_DS_MASK;
     tmpreg |= PWR_Regulator;
 
+    // 2K+30K in standby power.
+    tmpreg |= (0x1 << 16) | (0x1 << 17);
+    // 2K+30K in standby LV .
     tmpreg |= (0x1 << 20);
     PWR->CTLR = tmpreg;
 

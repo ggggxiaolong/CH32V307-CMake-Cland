@@ -5,11 +5,9 @@
 * Date               : 2021/06/06
 * Description        : This file contains all the functions prototypes for the 
 *                      EXTI firmware library.
-*********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
+* SPDX-License-Identifier: Apache-2.0
+*******************************************************************************/ 
 #ifndef __CH32V30x_EXTI_H
 #define __CH32V30x_EXTI_H
 

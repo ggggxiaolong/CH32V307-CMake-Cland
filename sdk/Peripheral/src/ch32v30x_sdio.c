@@ -4,10 +4,8 @@
  * Version            : V1.0.0
  * Date               : 2021/06/06
  * Description        : This file provides all the SDIO firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #include "../inc/ch32v30x_sdio.h"
 
@@ -207,7 +205,7 @@ void SDIO_DMACmd(FunctionalState NewState) {
  *
  * @return  none
  */
-void SDIO_SendCommand(SDIO_CmdInitTypeDef *SDIO_CmdInitStruct) {
+void SDIO_SendCommand(const SDIO_CmdInitTypeDef *SDIO_CmdInitStruct) {
     uint32_t tmpreg = 0;
 
     SDIO->ARG = SDIO_CmdInitStruct->SDIO_Argument;
@@ -278,7 +276,7 @@ uint32_t SDIO_GetResponse(uint32_t SDIO_RESP) {
  *
  * @return  none
  */
-void SDIO_DataConfig(SDIO_DataInitTypeDef *SDIO_DataInitStruct) {
+void SDIO_DataConfig(const SDIO_DataInitTypeDef *SDIO_DataInitStruct) {
     uint32_t tmpreg = 0;
 
     SDIO->DTIMER = SDIO_DataInitStruct->SDIO_DataTimeOut;
@@ -581,7 +579,7 @@ void SDIO_ClearFlag(uint32_t SDIO_FLAG) { SDIO->ICR = SDIO_FLAG; }
  *            SDIO_IT_SDIOIT - SD I/O interrupt received interrupt
  *            SDIO_IT_CEATAEND - CE-ATA command completion signal received for CMD61 interrupt
  *
- * @return  ITStatus:SET or RESET
+ * @return  ITStatus��SET or RESET
  */
 ITStatus SDIO_GetITStatus(uint32_t SDIO_IT) {
     ITStatus bitstatus = RESET;

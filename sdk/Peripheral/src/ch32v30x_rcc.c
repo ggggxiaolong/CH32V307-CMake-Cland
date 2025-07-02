@@ -2,12 +2,10 @@
  * File Name          : ch32v30x_rcc.c
  * Author             : WCH
  * Version            : V1.0.0
- * Date               : 2024/05/28
+ * Date               : 2021/06/06
  * Description        : This file provides all the RCC firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #include "../inc/ch32v30x_rcc.h"
 
@@ -26,8 +24,8 @@
 #define CTLR_HSEON_Set ((uint32_t)0x00010000)
 #define CTLR_HSITRIM_Mask ((uint32_t)0xFFFFFF07)
 
-#define CFGR0_PLL_Mask ((uint32_t)0xFFC0FFFF)
-#define CFGR0_PLL_Mask_1 ((uint32_t)0xFFC2FFFF)
+#define CFGR0_PLL_Mask ((uint32_t)0xFFC0FFFF)   /* 103 */
+#define CFGR0_PLL_Mask_1 ((uint32_t)0xFFC2FFFF) /* 107 */
 
 #define CFGR0_PLLMull_Mask ((uint32_t)0x003C0000)
 #define CFGR0_PLLSRC_Mask ((uint32_t)0x00010000)
@@ -75,8 +73,7 @@ static __I uint8_t ADCPrescTable[4] = {2, 4, 6, 8};
  * @fn      RCC_DeInit
  *
  * @brief   Resets the RCC clock configuration to the default reset state.
- *          Note-
- *          HSE can not be stopped if it is used directly or through the PLL as system clock.
+ *
  * @return  none
  */
 void RCC_DeInit(void) {
@@ -110,8 +107,7 @@ void RCC_DeInit(void) {
  *            RCC_HSE_OFF - HSE oscillator OFF.
  *            RCC_HSE_ON - HSE oscillator ON.
  *            RCC_HSE_Bypass - HSE oscillator bypassed with external clock.
- *            Note-
- *            HSE can not be stopped if it is used directly or through the PLL as system clock.
+ *
  * @return  none
  */
 void RCC_HSEConfig(uint32_t RCC_HSE) {
@@ -137,8 +133,8 @@ void RCC_HSEConfig(uint32_t RCC_HSE) {
  *
  * @brief   Waits for HSE start-up.
  *
- * @return  READY - HSE oscillator is stable and ready to use.
- *          NoREADY - HSE oscillator not yet ready.
+ * @return  SUCCESS - HSE oscillator is stable and ready to use.
+ *                  ERROR - HSE oscillator not yet ready.
  */
 ErrorStatus RCC_WaitForHSEStartUp(void) {
     __IO uint32_t StartUpCounter = 0;
@@ -264,8 +260,6 @@ void RCC_PLLConfig(uint32_t RCC_PLLSource, uint32_t RCC_PLLMul) {
  * @fn      RCC_PLLCmd
  *
  * @brief   Enables or disables the PLL.
- *          Note-The PLL can not be disabled if it is used as system clock.
- *
  *
  * @param   NewState - ENABLE or DISABLE.
  *
@@ -370,11 +364,10 @@ void RCC_PCLK1Config(uint32_t RCC_HCLK) {
  *
  * @param   RCC_HCLK - defines the APB2 clock divider. This clock is derived from
  *        the AHB clock (HCLK).
- *            RCC_HCLK_Div1 - APB2 clock = HCLK.
- *            RCC_HCLK_Div2 - APB2 clock = HCLK/2.
- *            RCC_HCLK_Div4 - APB2 clock = HCLK/4.
- *            RCC_HCLK_Div8 - APB2 clock = HCLK/8.
- *            RCC_HCLK_Div16 - APB2 clock = HCLK/16.
+ *            RCC_PCLK2_Div2 - APB2 clock = HCLK.
+ *            RCC_PCLK2_Div4 - APB2 clock = HCLK/2.
+ *            RCC_PCLK2_Div6 - APB2 clock = HCLK/4.
+ *            RCC_PCLK2_Div8 - APB2 clock = HCLK/8.
  *
  * @return  none
  */
@@ -467,8 +460,6 @@ void RCC_LSEConfig(uint8_t RCC_LSE) {
  * @fn      RCC_LSICmd
  *
  * @brief   Enables or disables the Internal Low Speed oscillator (LSI).
- *          Note-
- *          LSI can not be disabled if the IWDG is running.
  *
  * @param   NewState - ENABLE or DISABLE.
  *
@@ -491,8 +482,7 @@ void RCC_LSICmd(FunctionalState NewState) {
  *            RCC_RTCCLKSource_LSE - LSE selected as RTC clock.
  *            RCC_RTCCLKSource_LSI - LSI selected as RTC clock.
  *            RCC_RTCCLKSource_HSE_Div128 - HSE clock divided by 128 selected as RTC clock.
- *         Note-
- *           Once the RTC clock is selected it can't be changed unless the Backup domain is reset.
+ *
  * @return  none
  */
 void RCC_RTCCLKConfig(uint32_t RCC_RTCCLKSource) { RCC->BDCTLR |= RCC_RTCCLKSource; }
@@ -643,13 +633,11 @@ void RCC_GetClocksFreq(RCC_ClocksTypeDef *RCC_Clocks) {
  *            RCC_AHBPeriph_RNG
  *            RCC_AHBPeriph_SDIO
  *            RCC_AHBPeriph_USBHS
- *            RCC_AHBPeriph_USBFS
+ *            RCC_AHBPeriph_OTG_FS
  *            RCC_AHBPeriph_DVP
  *            RCC_AHBPeriph_ETH_MAC
  *            RCC_AHBPeriph_ETH_MAC_Tx
  *            RCC_AHBPeriph_ETH_MAC_Rx
- *          Note-
- *          SRAM  clock can be disabled only during sleep mode.
  *          NewState: ENABLE or DISABLE.
  *
  * @return  none
@@ -914,9 +902,7 @@ FlagStatus RCC_GetFlagStatus(uint8_t RCC_FLAG) {
  * @fn      RCC_ClearFlag
  *
  * @brief   Clears the RCC reset flags.
- *          Note-
- *          The reset flags are: RCC_FLAG_PINRST, RCC_FLAG_PORRST, RCC_FLAG_SFTRST,
- *          RCC_FLAG_IWDGRST, RCC_FLAG_WWDGRST, RCC_FLAG_LPWRRST
+ *
  * @return  none
  */
 void RCC_ClearFlag(void) { RCC->RSTSCKR |= RSTSCKR_RMVF_Set; }
@@ -980,8 +966,6 @@ void RCC_ClearITPendingBit(uint8_t RCC_IT) { *(__IO uint8_t *)INTR_BYTE3_ADDRESS
  *            RCC_PREDIV1_Source_PLL2 - PLL2 selected as PREDIV1 clock
  *          RCC_PREDIV1_Div - specifies the PREDIV1 clock division factor.
  *            This parameter can be RCC_PREDIV1_Divx where x[1,16]
- *         Note-
- *         - This function must be used only when the PLL is disabled.
  *
  * @return  none
  */
@@ -1000,9 +984,7 @@ void RCC_PREDIV1Config(uint32_t RCC_PREDIV1_Source, uint32_t RCC_PREDIV1_Div) {
  * @brief   Configures the PREDIV2 division factor.
  *
  * @param   RCC_PREDIV2_Div - specifies the PREDIV2 clock division factor.
- *          This parameter can be RCC_PREDIV2_Divx where x:[1,16]
- *          Note-
- *          - This function must be used only when both PLL2 and PLL3 are disabled.
+ *            This parameter can be RCC_PREDIV2_Divx where x:[1,16]
  *
  * @return  none
  */
@@ -1021,9 +1003,7 @@ void RCC_PREDIV2Config(uint32_t RCC_PREDIV2_Div) {
  * @brief   Configures the PLL2 multiplication factor.
  *
  * @param   RCC_PLL2Mul - specifies the PLL2 multiplication factor.
- *            This parameter can be RCC_PLL2Mul_x where x:{[4,16], 2.5, 12.5, 20}
- *          Note-
- *          - This function must be used only when the PLL2 is disabled.
+ *            This parameter can be RCC_PLL2Mul_x where x:{[8,14], 16, 20}
  *
  * @return  none
  */
@@ -1042,10 +1022,7 @@ void RCC_PLL2Config(uint32_t RCC_PLL2Mul) {
  * @brief   Enables or disables the PLL2.
  *
  * @param   NewState - new state of the PLL2. This parameter can be
- *          ENABLE or DISABLE.
- *          Note-
- *          - The PLL2 can not be disabled if it is used indirectly as system clock
- *          (i.e. it is used as PLL clock entry that is used as System clock).
+ *        ENABLE or DISABLE.
  *
  * @return  none
  */
@@ -1062,10 +1039,8 @@ void RCC_PLL2Cmd(FunctionalState NewState) {
  *
  * @brief   Configures the PLL3 multiplication factor.
  *
- * @param   RCC_PLL3Mul - specifies the PLL3 multiplication factor.
- *            This parameter can be RCC_PLL3Mul_x where x:{[4,16], 2.5, 12.5, 20}
- *          Note-
- *          - This function must be used only when the PLL3 is disabled.
+ * @param   RCC_PLL3Mul - specifies the PLL2 multiplication factor.
+ *            This parameter can be RCC_PLL2Mul_x where x:{[8,14], 16, 20}
  *
  * @return  none
  */
@@ -1097,23 +1072,23 @@ void RCC_PLL3Cmd(FunctionalState NewState) {
 }
 
 /*********************************************************************
- * @fn      RCC_USBFSCLKConfig
+ * @fn      RCC_OTGFSCLKConfig
  *
- * @brief   Configures the USB OTG FS clock (USBFSCLK).
+ * @brief   Configures the USB OTG FS clock (OTGFSCLK).
  *
- * @param   RCC_USBFSCLKSource - specifies the USB OTG FS clock source.
- *            RCC_USBFSCLKSource_PLLCLK_Div1 - PLL clock divided by 1
+ * @param   RCC_OTGFSCLKSource - specifies the USB OTG FS clock source.
+ *            RCC_OTGFSCLKSource_PLLCLK_Div1 - PLL clock divided by 1
  *        selected as USB OTG FS clock source
- *            RCC_USBFSCLKSource_PLLCLK_Div2 - PLL clock divided by 2
+ *            RCC_OTGFSCLKSource_PLLCLK_Div2 - PLL clock divided by 2
  *        selected as USB OTG FS clock source
- *            RCC_USBFSCLKSource_PLLCLK_Div3 - PLL clock divided by 3
+ *            RCC_OTGFSCLKSource_PLLCLK_Div3 - PLL clock divided by 3
  *        selected as USB OTG FS clock source
  *
  * @return  none
  */
-void RCC_USBFSCLKConfig(uint32_t RCC_USBFSCLKSource) {
+void RCC_OTGFSCLKConfig(uint32_t RCC_OTGFSCLKSource) {
     RCC->CFGR0 &= ~(3 << 22);
-    RCC->CFGR0 |= RCC_USBFSCLKSource << 22;
+    RCC->CFGR0 |= RCC_OTGFSCLKSource << 22;
 }
 
 /*********************************************************************
@@ -1124,8 +1099,7 @@ void RCC_USBFSCLKConfig(uint32_t RCC_USBFSCLKSource) {
  * @param   RCC_I2S2CLKSource - specifies the I2S2 clock source.
  *          RCC_I2S2CLKSource_SYSCLK - system clock selected as I2S2 clock entry
  *          RCC_I2S2CLKSource_PLL3_VCO - PLL3 VCO clock selected as I2S2 clock entry
- *          Note-
- *          - This function must be called before enabling I2S2 APB clock.
+ *
  * @return  none
  */
 void RCC_I2S2CLKConfig(uint32_t RCC_I2S2CLKSource) {
@@ -1139,10 +1113,9 @@ void RCC_I2S2CLKConfig(uint32_t RCC_I2S2CLKSource) {
  * @brief   Configures the I2S3 clock source(I2S2CLK).
  *
  * @param   RCC_I2S3CLKSource - specifies the I2S3 clock source.
- *          RCC_I2S3CLKSource_SYSCLK - system clock selected as I2S3 clock entry
- *          RCC_I2S3CLKSource_PLL3_VCO - PLL3 VCO clock selected as I2S3 clock entry
- *          Note-
- *         - This function must be called before enabling I2S3 APB clock.
+ *            RCC_I2S3CLKSource_SYSCLK - system clock selected as I2S3 clock entry
+ *            RCC_I2S3CLKSource_PLL3_VCO - PLL3 VCO clock selected as I2S3 clock entry
+ *
  * @return  none
  */
 void RCC_I2S3CLKConfig(uint32_t RCC_I2S3CLKSource) {
@@ -1156,7 +1129,7 @@ void RCC_I2S3CLKConfig(uint32_t RCC_I2S3CLKSource) {
  * @brief   Forces or releases AHB peripheral reset.
  *
  * @param   RCC_AHBPeriph - specifies the AHB peripheral to reset.
- *            RCC_AHBPeriph_USBFS
+ *            RCC_AHBPeriph_OTG_FS
  *            RCC_AHBPeriph_ETH_MAC
  *          NewState - ENABLE or DISABLE.
  *

@@ -4,10 +4,8 @@
  * Version            : V1.0.0
  * Date               : 2021/06/06
  * Description        : This file provides all the ETH firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+ * SPDX-License-Identifier: Apache-2.0
  *******************************************************************************/
 #include "../inc/ch32v30x_eth.h"
 
@@ -1240,7 +1238,7 @@ ITStatus ETH_GetDMAITStatus(uint32_t ETH_DMA_IT) {
 /*********************************************************************
  * @fn      ETH_DMAClearITPendingBit
  *
- * @brief   Clears the ETHERNET"s DMA IT pending bit.
+ * @brief   Clears the ETHERNET�s DMA IT pending bit.
  *
  * @param   ETH_DMA_IT - specifies the interrupt pending bit to clear.
  *            ETH_DMA_IT_NIS - Normal interrupt summary
@@ -2126,7 +2124,6 @@ void RGMII_TXC_Delay(uint8_t clock_polarity, uint8_t delay_time) {
         ETH->MACCR &= ~(uint32_t)(1 << 1);
     }
     if (delay_time <= 7) {
-        ETH->MACCR &= ~(uint32_t)(7 << 29);
         ETH->MACCR |= (uint32_t)(delay_time << 29);
     }
 }

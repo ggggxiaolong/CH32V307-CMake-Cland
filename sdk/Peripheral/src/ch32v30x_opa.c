@@ -4,12 +4,12 @@
  * Version            : V1.0.0
  * Date               : 2021/06/06
  * Description        : This file provides all the OPA firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
- *******************************************************************************/
+ * SPDX-License-Identifier: Apache-2.0
+ ***************************************************************************************/
 #include "../inc/ch32v30x_opa.h"
+
+#include "../inc/ch32v30x_rcc.h"
 
 #define OPA_MASK ((uint32_t)0x000F)
 #define OPA_Total_NUM 4
@@ -34,7 +34,7 @@ void OPA_DeInit(void) { OPA->CR = 0; }
  *
  * @return  none
  */
-void OPA_Init(OPA_InitTypeDef *OPA_InitStruct) {
+void OPA_Init(const OPA_InitTypeDef *OPA_InitStruct) {
     uint32_t tmp = 0;
     tmp = OPA->CR;
     tmp &= ~(OPA_MASK << (OPA_InitStruct->OPA_NUM * OPA_Total_NUM));

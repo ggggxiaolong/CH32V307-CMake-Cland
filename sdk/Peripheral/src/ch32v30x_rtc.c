@@ -4,12 +4,12 @@
  * Version            : V1.0.0
  * Date               : 2021/06/06
  * Description        : This file provides all the RTC firmware functions.
- *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
- * Attention: This software (modified or not) and binary are used for
- * microcontroller manufactured by Nanjing Qinheng Microelectronics.
- *******************************************************************************/
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
 #include "../inc/ch32v30x_rtc.h"
+
+#include "../inc/ch32v30x_rcc.h"
 
 /* RTC_Private_Defines */
 #define RTC_LSB_MASK ((uint32_t)0x0000FFFF)  /* RTC LSB Mask */
@@ -61,32 +61,17 @@ void RTC_ExitConfigMode(void) { RTC->CTLRL &= (uint16_t)~((uint16_t)RTC_CTLRL_CN
  * @return  RTC counter value
  */
 uint32_t RTC_GetCounter(void) {
-    uint16_t high1a = 0, high1b = 0, high2a = 0, high2b = 0;
-    uint16_t low1 = 0, low2 = 0;
+    uint16_t high1 = 0, high2 = 0, low = 0;
 
-    do {
-        high1a = RTC->CNTH;
-        high1b = RTC->CNTH;
-    } while (high1a != high1b);
+    high1 = RTC->CNTH;
+    low = RTC->CNTL;
+    high2 = RTC->CNTH;
 
-    do {
-        low1 = RTC->CNTL;
-        low2 = RTC->CNTL;
-    } while (low1 != low2);
-
-    do {
-        high2a = RTC->CNTH;
-        high2b = RTC->CNTH;
-    } while (high2a != high2b);
-
-    if (high1b != high2b) {
-        do {
-            low1 = RTC->CNTL;
-            low2 = RTC->CNTL;
-        } while (low1 != low2);
+    if (high1 != high2) {
+        return (((uint32_t)high2 << 16) | RTC->CNTL);
+    } else {
+        return (((uint32_t)high1 << 16) | low);
     }
-
-    return (((uint32_t)high2b << 16) | low2);
 }
 
 /*********************************************************************
@@ -145,40 +130,17 @@ void RTC_SetAlarm(uint32_t AlarmValue) {
  * @return  RTC Divider value
  */
 uint32_t RTC_GetDivider(void) {
-    uint16_t high1a = 0, high1b = 0, high2a = 0, high2b = 0;
-    uint16_t low1 = 0, low2 = 0;
-
-    do {
-        high1a = RTC->DIVH;
-        high1b = RTC->DIVH;
-    } while (high1a != high1b);
-
-    do {
-        low1 = RTC->DIVL;
-        low2 = RTC->DIVL;
-    } while (low1 != low2);
-
-    do {
-        high2a = RTC->DIVH;
-        high2b = RTC->DIVH;
-    } while (high2a != high2b);
-
-    if (high1b != high2b) {
-        do {
-            low1 = RTC->DIVL;
-            low2 = RTC->DIVL;
-        } while (low1 != low2);
-    }
-
-    return ((((uint32_t)high2b & (uint32_t)0x000F) << 16) | low2);
+    uint32_t tmp = 0x00;
+    tmp = ((uint32_t)RTC->DIVH & (uint32_t)0x000F) << 16;
+    tmp |= RTC->DIVL;
+    return tmp;
 }
 
 /*********************************************************************
  * @fn      RTC_WaitForLastTask
  *
  * @brief   Waits until last write operation on RTC registers has finished
- *          Note-
- *          This function must be called before any write to RTC registers.
+ *
  * @return  none
  */
 void RTC_WaitForLastTask(void) {
@@ -190,9 +152,6 @@ void RTC_WaitForLastTask(void) {
  * @fn      RTC_WaitForSynchro
  *
  * @brief   Waits until the RTC registers are synchronized with RTC APB clock
- *          Note-
- *          This function must be called before any read operation after an APB reset
- *          or an APB clock stop.
  *
  * @return  none
  */
@@ -214,7 +173,7 @@ void RTC_WaitForSynchro(void) {
  *            RTC_FLAG_ALR - Alarm flag
  *            RTC_FLAG_SEC - Second flag
  *
- * @return  The new state of RTC_FLAG (SET or RESET)
+ * @return  none
  */
 FlagStatus RTC_GetFlagStatus(uint16_t RTC_FLAG) {
     FlagStatus bitstatus = RESET;

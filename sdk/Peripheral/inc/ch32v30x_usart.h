@@ -2,14 +2,12 @@
 * File Name          : ch32v30x_usart.h
 * Author             : WCH
 * Version            : V1.0.0
-* Date               : 2024/03/06
+* Date               : 2021/06/06
 * Description        : This file contains all the functions prototypes for the 
 *                      USART firmware library.
-*********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
+* SPDX-License-Identifier: Apache-2.0
+*******************************************************************************/ 
 #ifndef __CH32V30x_USART_H
 #define __CH32V30x_USART_H
 
@@ -154,7 +152,7 @@ typedef struct
 
 
 void USART_DeInit(USART_TypeDef* USARTx);
-void USART_Init(USART_TypeDef* USARTx, USART_InitTypeDef* USART_InitStruct);
+void USART_Init(USART_TypeDef* USARTx, const USART_InitTypeDef* USART_InitStruct);
 void USART_StructInit(USART_InitTypeDef* USART_InitStruct);
 void USART_ClockInit(USART_TypeDef* USARTx, USART_ClockInitTypeDef* USART_ClockInitStruct);
 void USART_ClockStructInit(USART_ClockInitTypeDef* USART_ClockInitStruct);
@@ -174,6 +172,8 @@ void USART_SetPrescaler(USART_TypeDef* USARTx, uint8_t USART_Prescaler);
 void USART_SmartCardCmd(USART_TypeDef* USARTx, FunctionalState NewState);
 void USART_SmartCardNACKCmd(USART_TypeDef* USARTx, FunctionalState NewState);
 void USART_HalfDuplexCmd(USART_TypeDef* USARTx, FunctionalState NewState);
+void USART_OverSampling8Cmd(USART_TypeDef* USARTx, FunctionalState NewState);
+void USART_OneBitMethodCmd(USART_TypeDef* USARTx, FunctionalState NewState);
 void USART_IrDAConfig(USART_TypeDef* USARTx, uint16_t USART_IrDAMode);
 void USART_IrDACmd(USART_TypeDef* USARTx, FunctionalState NewState);
 FlagStatus USART_GetFlagStatus(USART_TypeDef* USARTx, uint16_t USART_FLAG);

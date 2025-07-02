@@ -5,11 +5,9 @@
 * Date               : 2021/06/06
 * Description        : This file contains all the functions prototypes for the 
 *                      DMA firmware library.
-*********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/ 
+* SPDX-License-Identifier: Apache-2.0
+*******************************************************************************/  
 #ifndef __CH32V30x_DMA_H
 #define __CH32V30x_DMA_H
 
@@ -251,7 +249,7 @@ typedef struct
 
 
 void DMA_DeInit(DMA_Channel_TypeDef* DMAy_Channelx);
-void DMA_Init(DMA_Channel_TypeDef* DMAy_Channelx, DMA_InitTypeDef* DMA_InitStruct);
+void DMA_Init(DMA_Channel_TypeDef* DMAy_Channelx, const DMA_InitTypeDef* DMA_InitStruct);
 void DMA_StructInit(DMA_InitTypeDef* DMA_InitStruct);
 void DMA_Cmd(DMA_Channel_TypeDef* DMAy_Channelx, FunctionalState NewState);
 void DMA_ITConfig(DMA_Channel_TypeDef* DMAy_Channelx, uint32_t DMA_IT, FunctionalState NewState);

@@ -5,11 +5,9 @@
 * Date               : 2021/06/06
 * Description        : This file contains all the functions prototypes for the 
 *                      OPA firmware library.
-*********************************************************************************
 * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
+* SPDX-License-Identifier: Apache-2.0
+*******************************************************************************/ 
 #ifndef __CH32V30x_OPA_H
 #define __CH32V30x_OPA_H
 
@@ -65,7 +63,7 @@ typedef struct
 
 
 void OPA_DeInit(void);
-void OPA_Init(OPA_InitTypeDef* OPA_InitStruct);
+void OPA_Init(const OPA_InitTypeDef* OPA_InitStruct);
 void OPA_StructInit(OPA_InitTypeDef* OPA_InitStruct);
 void OPA_Cmd(OPA_Num_TypeDef OPA_NUM, FunctionalState NewState);
 
