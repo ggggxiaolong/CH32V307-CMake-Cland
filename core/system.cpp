@@ -97,12 +97,12 @@ void sys::preinit() {
 
     Systick_Init();
 
-    GPIO_PinRemapConfig(GPIO_Remap_PD01, ENABLE);  // 外部时钟源输入输出
+    GPIO_PinRemapConfig(GPIO_Remap_PD01, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
-    PWR_BackupAccessCmd(ENABLE);  // 使能或失能对备份寄存器的访问
+    PWR_BackupAccessCmd(ENABLE);
     RCC_LSEConfig(RCC_LSE_OFF);
-    BKP_TamperPinCmd(DISABLE);  // 禁用篡改检测引脚（Tamper Pin）的功能
+    BKP_TamperPinCmd(DISABLE);
     PWR_BackupAccessCmd(DISABLE);
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE | RCC_APB2Periph_GPIOD, ENABLE);

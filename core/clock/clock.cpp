@@ -136,7 +136,7 @@ void Systick_Init() {
     NVIC_EnableIRQ(SysTick_IRQn);
 }
 
-void SysTick_Handler() {
+void SysTick_Handler(void) {
     msTick += 1;
     micros_base += 1000;
     SysTick->SR = 0;

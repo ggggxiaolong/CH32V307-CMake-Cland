@@ -221,5 +221,10 @@ size_t DmaChannel::pending() { return SDK_INST(instance)->CNTR; }
 
 void DmaChannel::enable_done_it(const Enable en) {
     DMA_ClearITPendingBit(done_mask);
-    DMA_ITConfig(SDK_INST(instance), DMA_IT_HT, en == EN ? ENABLE : DISABLE);
+    DMA_ITConfig(SDK_INST(instance), DMA_IT_HT, en.to_state());
+}
+
+void DmaChannel::enable_half_it(const Enable en) {
+    DMA_ClearITPendingBit(half_mask);
+    DMA_ITConfig(SDK_INST(instance), DMA_IT_HT, en.to_state());
 }

@@ -1,0 +1,41 @@
+#pragma once
+
+#include <cstdint>
+
+#include "hal/bus/bus_base.hpp"
+#include "hal/bus/bus_enum.hpp"
+#include "hal/gpio/gpio.hpp"
+#include "hal/hal_result.hpp"
+#include "sys/_intsup.h"
+#include "uart.hpp"
+
+namespace ymd::hal {
+class UartSw final : public Uart {
+   protected:
+    Gpio& tx_gpio_;
+    Gpio& rx_gpio_;
+
+    enum class ByteProg : int8_t { D0 = 0, D1, D2, D3, D4, D5, D6, D7, START, STOP, IDLE };
+
+    ByteProg prog_ = ByteProg::IDLE;
+
+    uint16_t current_char = '\0';
+    uint16_t fetch_next() { return tx_fifo_.pop(); }
+    hal::HalResult lead(const LockRequest req) { return hal::HalResult::ok(); }
+
+    void trail() {}
+
+   public:
+    UartSw(Gpio& tx_gpio, Gpio& rx_gpio) : tx_gpio_(tx_gpio), rx_gpio_(rx_gpio) {}
+    void init(uint32_t baud, CommStrategy tx_strategy = CommStrategy::Interrupt, CommStrategy rx_strategy = CommStrategy::Interrupt);
+    void tick();
+    void set_tx_strategy(const CommStrategy strategy);
+    void set_rx_strategy(const CommStrategy strategy);
+    void write1(const char data) { tx_fifo_.push(data); }
+    void writeN(const char* buf, const size_t len) { tx_fifo_.push(std::span(buf, len)); }
+
+    Gpio& txio() const { return tx_gpio_; }
+    Gpio& rxio() const { return rx_gpio_; }
+    void set_parity(const Parity parity) {}
+};
+}  // namespace ymd::hal

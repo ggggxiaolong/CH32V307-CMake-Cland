@@ -55,7 +55,7 @@ class HalResult {
 
    public:
     using Kind = HalError::Kind;
-    // using enum Kind;
+    using enum Kind;
     constexpr HalResult(std::nullopt_t) : error_(std::nullopt) {};
     constexpr HalResult(const Kind& kind) : error_(HalError(kind)) {};
     constexpr HalResult(Kind&& kind) : error_(HalError(kind)) {};

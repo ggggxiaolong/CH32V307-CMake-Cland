@@ -26,25 +26,35 @@
 //         // GPIO_WriteBit(GPIOB, GPIO_Pin_4, Bit_RESET);
 //     }
 // }
+#include <cstdint>
+
 #include "core/clock/clock.hpp"
+#include "core/debug/debug.hpp"
 #include "core/system.hpp"
+#include "hal/bus/bus_enum.hpp"
+#include "hal/bus/uart/uarthw.hpp"
 #include "hal/gpio/gpio_port.hpp"
 
 using namespace ymd;
 using namespace ymd::hal;
 
 void gpio_tb(hal::GpioIntf& gpio) {
+    DEBUG_PRINT("gpio init");
     gpio.outpp();
     while (true) {
+        DEBUG_PRINT("len open");
         gpio.set();
         clock::delay(1000ms);
+        DEBUG_PRINT("len close");
         gpio.clr();
         clock::delay(1000ms);
     }
 }
 
 int main() {
-    // GPIO_INIT();
     ymd::sys::preinit();
+    uart1.init(115200, ymd::CommStrategy::Nil);
+    DEBUGGER.retarget(&uart1);
+    DEBUG_PRINT("init start");
     gpio_tb(hal::portB[4]);
 }

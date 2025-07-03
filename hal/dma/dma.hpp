@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 
@@ -223,7 +224,7 @@ class DmaChannel {
     void resume();
 
     template <typename T>
-    void transfer_pph2men(auto *dst, const volatile auto *src, size_t size) {
+    void transfer_pph2mem(auto *dst, const volatile auto *src, size_t size) {
         set_dst_width(sizeof(T) << 3);
         set_src_width(sizeof(T) << 3);
 
@@ -251,6 +252,12 @@ class DmaChannel {
     void enable_it(const NvicPriority priority, const Enable enable = EN);
 
     void enable_done_it(const Enable enable = EN);
+    void enable_half_it(const Enable enable = EN);
+    void bind_done_cb(auto &&cb) { done_cb_ = std::move(cb); }
+
+    void bind_half_cb(auto &&cb) { half_cb_ = std::move(cb); }
+
+    bool is_done() const { return DMA_GetFlagStatus(done_mask); }
 };
 }  // namespace ymd::hal
 

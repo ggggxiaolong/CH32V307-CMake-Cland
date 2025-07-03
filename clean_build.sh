@@ -7,12 +7,10 @@ if [ -d "build/" ]; then
     cd build
     cmake -GNinja ../
     ninja
-    ls -lh .
 else
     echo "Not Found build/"
     mkdir build
     cd build
     cmake -GNinja ../
     ninja
-    ls -lh .
 fi

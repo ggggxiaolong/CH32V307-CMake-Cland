@@ -1,0 +1,42 @@
+#include "uartsw.hpp"
+
+#include <cstdint>
+
+#include "core/constants/enums.hpp"
+#include "core/stream/CharOpTraits.hpp"
+#include "hal/bus/bus_enum.hpp"
+#include "hal/gpio/gpio.hpp"
+
+using namespace ymd::hal;
+
+void UartSw::init(uint32_t baud, CommStrategy tx_strategy, CommStrategy rx_strategy) {
+    set_rx_strategy(rx_strategy);
+    set_tx_strategy(tx_strategy);
+}
+
+void UartSw::tick() {
+    switch (prog_) {
+        case ByteProg::START:
+            tx_gpio_.clr();
+            prog_ = ByteProg::D0;
+            break;
+        case ByteProg::D0... ByteProg::D7:
+            tx_gpio_.write(BoolLevel::from(current_char & (1 << (uint8_t)prog_)));
+            prog_ = (prog_ == ByteProg::D7) ? ByteProg::STOP : ByteProg(uint8_t(prog_) + 1);
+            break;
+        case ByteProg::STOP:
+            tx_gpio_.set();
+            prog_ = ByteProg::IDLE;
+            break;
+        case ByteProg::IDLE:
+            tx_gpio_.set();
+            if (tx_fifo_.available()) {
+                current_char = fetch_next();
+                prog_ = ByteProg::START;
+            }
+            break;
+    }
+}
+
+void UartSw::set_tx_strategy(const CommStrategy strategy) { tx_gpio_.outpp(HIGH); }
+void UartSw::set_rx_strategy(const CommStrategy strategy) { rx_gpio_.inpu(); }
