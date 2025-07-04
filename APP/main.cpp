@@ -1,6 +1,7 @@
 // // #include "../Debug/debug.h"
-// #include "sdk/Peripheral/inc/ch32v30x.h"
-// #include "sdk/system_ch32v30x.h"
+#include "core/constants/enums.hpp"
+#include "sdk/Peripheral/inc/ch32v30x.h"
+#include "sdk/system_ch32v30x.h"
 
 // void GPIO_INIT(void) {
 //     GPIO_InitTypeDef GPIO_InitStructure;
@@ -12,8 +13,8 @@
 // }
 
 // int main() {
-//     SystemCoreClockUpdate();
-//     // Delay_Init();
+// SystemCoreClockUpdate();
+// Delay_Init();
 //     // USART_Printf_Init(115200);
 //     // printf("SystemClk:%ld\r\n", SystemCoreClock);
 //     // printf("ChipID:%08lx\r\n", DBGMCU_GetCHIPID());
@@ -26,7 +27,7 @@
 //         // GPIO_WriteBit(GPIOB, GPIO_Pin_4, Bit_RESET);
 //     }
 // }
-#include <cstdint>
+// #include <cstdint>
 
 #include "core/clock/clock.hpp"
 #include "core/debug/debug.hpp"
@@ -39,22 +40,23 @@ using namespace ymd;
 using namespace ymd::hal;
 
 void gpio_tb(hal::GpioIntf& gpio) {
-    DEBUG_PRINT("gpio init");
-    gpio.outpp();
+    DEBUG_PRINTLN("gpio init");
+    gpio.outpp(HIGH);
+    gpio.clr();
     while (true) {
-        DEBUG_PRINT("len open");
+        DEBUG_PRINTLN("len open");
         gpio.set();
-        clock::delay(1000ms);
-        DEBUG_PRINT("len close");
+        clock::delay(500ms);
+        DEBUG_PRINTLN("len close");
         gpio.clr();
-        clock::delay(1000ms);
+        clock::delay(500ms);
     }
 }
 
 int main() {
     ymd::sys::preinit();
-    uart1.init(115200, ymd::CommStrategy::Nil);
+    uart1.init(115200, ymd::CommStrategy::Nil, ymd::CommStrategy::Dma);
     DEBUGGER.retarget(&uart1);
-    DEBUG_PRINT("init start");
+    DEBUG_PRINTLN("init start");
     gpio_tb(hal::portB[4]);
 }

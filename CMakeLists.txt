@@ -47,7 +47,7 @@ add_compile_options(-O2)
 # 编译信息等级
 add_compile_options(-Wall)
 # 添加调试信息
-# add_compile_options(-g)
+add_compile_options(-g)
 
 # 头文件路径
 include_directories(

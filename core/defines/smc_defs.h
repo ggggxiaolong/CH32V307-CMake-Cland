@@ -20,7 +20,7 @@
 // #define ENABLE_UART7
 // #define ENABLE_UART8
 
-#define UART1_REMAP 1
+#define UART1_REMAP 0
 #define UART3_REMAP 0
 #define UART5_REMAP 0
 #define UART6_REMAP 0

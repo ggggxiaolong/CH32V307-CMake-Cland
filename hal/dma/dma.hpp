@@ -16,7 +16,6 @@
 #include "sdk/Peripheral/inc/ch32v30x_dma.h"
 using namespace ymd::hal;
 extern "C" {
-
 #ifdef ENABLE_DMA1
 __interrupt void DMA1_Channel1_IRQHandler(void);
 __interrupt void DMA1_Channel2_IRQHandler(void);
@@ -25,14 +24,6 @@ __interrupt void DMA1_Channel4_IRQHandler(void);
 __interrupt void DMA1_Channel5_IRQHandler(void);
 __interrupt void DMA1_Channel6_IRQHandler(void);
 __interrupt void DMA1_Channel7_IRQHandler(void);
-
-// extern ymd::hal::DmaChannel dma1Ch1;
-// extern ymd::hal::DmaChannel dma1Ch2;
-// extern ymd::hal::DmaChannel dma1Ch3;
-// extern ymd::hal::DmaChannel dma1Ch4;
-// extern ymd::hal::DmaChannel dma1Ch5;
-// extern ymd::hal::DmaChannel dma1Ch6;
-// extern ymd::hal::DmaChannel dma1Ch7;
 #endif
 
 #ifdef ENABLE_DMA2
@@ -42,7 +33,6 @@ __interrupt void DMA2_Channel3_IRQHandler(void);
 __interrupt void DMA2_Channel4_IRQHandler(void);
 __interrupt void DMA2_Channel5_IRQHandler(void);
 __interrupt void DMA2_Channel6_IRQHandler(void);
-__interrupt void DMA2_Channel7_IRQHandler(void);
 __interrupt void DMA2_Channel7_IRQHandler(void);
 __interrupt void DMA2_Channel8_IRQHandler(void);
 __interrupt void DMA2_Channel9_IRQHandler(void);
@@ -61,8 +51,10 @@ class DmaChannel {
 
    protected:
     void *instance;
+
     const uint32_t done_mask;
     const uint32_t half_mask;
+
     const uint8_t dma_index;
     const uint8_t channel_index;
 
@@ -70,68 +62,61 @@ class DmaChannel {
     Callback half_cb_;
     Mode mode_;
 
-    // void enabel_rcc(const Enable en);
-    // void set_peripheral_width(const size_t width);
-    // void set_mem_width(const size_t width);
+    void enable_rcc(const Enable en);
 
-#ifdef ENABLE_DMA1
-    friend void ::DMA1_Channel1_IRQHandler(void);
-    friend void ::DMA1_Channel2_IRQHandler(void);
-    friend void ::DMA1_Channel3_IRQHandler(void);
-    friend void ::DMA1_Channel4_IRQHandler(void);
-    friend void ::DMA1_Channel5_IRQHandler(void);
-    friend void ::DMA1_Channel6_IRQHandler(void);
-    friend void ::DMA1_Channel7_IRQHandler(void);
-#endif
+    void set_periph_width(const size_t width);
 
+    void set_mem_width(const size_t width);
+
+    __fast_inline void set_dst_width(const size_t width) {
+        if (dst_is_periph(mode_)) {
+            set_periph_width(width);
+        } else {
+            set_mem_width(width);
+        }
+    }
+
+    __fast_inline void set_src_width(const size_t width) {
+        if (!dst_is_periph(mode_)) {
+            set_periph_width(width);
+        } else {
+            set_mem_width(width);
+        }
+    }
+
+    static constexpr uint8_t calculate_dma_index(const void *_instance) {
 #ifdef ENABLE_DMA2
-    friend void ::DMA2_Channel1_IRQHandler(void);
-    friend void ::DMA2_Channel2_IRQHandler(void);
-    friend void ::DMA2_Channel3_IRQHandler(void);
-    friend void ::DMA2_Channel4_IRQHandler(void);
-    friend void ::DMA2_Channel5_IRQHandler(void);
-    friend void ::DMA2_Channel6_IRQHandler(void);
-    friend void ::DMA2_Channel7_IRQHandler(void);
-    friend void ::DMA2_Channel8_IRQHandler(void);
-    friend void ::DMA2_Channel9_IRQHandler(void);
-    friend void ::DMA2_Channel10_IRQHandler(void);
-    friend void ::DMA2_Channel11_IRQHandler(void);
-#endif
-
-    static constexpr uint8_t calculate_dma_index(const void *instance) {
-#ifdef ENABLE_DMA2
-        return instance < DMA2_Channel1 ? 1 : 2;
+        return _instance < DMA2_Channel1 ? 1 : 2;
 #else
         return 1;
 #endif
     }
 
-    static constexpr uint8_t calculate_channel_index(const void *instance) {
-        uint8_t dma_index = calculate_dma_index(instance);
-        // clang-format off
+    static constexpr uint8_t calculate_channel_index(const void *_instance) {
+        uint8_t dma_index = calculate_dma_index(_instance);
         switch (dma_index) {
-            #ifdef ENABLE_DMA1
+#ifdef ENABLE_DMA1
             case 1:
-                return (uint32_t(instance) - DMA1_Channel1_BASE) / (DMA1_Channel2_BASE - DMA1_Channel1_BASE) + 1;
-            #endif
-            #ifdef ENABLE_DMA1
+                return (uint32_t(_instance) - DMA1_Channel1_BASE) / (DMA1_Channel2_BASE - DMA1_Channel1_BASE) + 1;
+#endif
+
+#ifdef ENABLE_DMA2
             case 2:
-                if (uint32_t(instance) < DMA2_Channel7_BASE) {
-                    return (uint32_t(instance) - DMA2_Channel1_BASE) / (DMA2_Channel2_BASE - DMA2_Channel1_BASE) + 1;
+                if (uint32_t(_instance) < DMA2_Channel7_BASE) {
+                    return (uint32_t(_instance) - DMA2_Channel1_BASE) / (DMA2_Channel2_BASE - DMA2_Channel1_BASE) + 1;
                 } else {
-                    return (uint32_t(instance) - DMA2_Channel7_BASE) / (DMA2_Channel8_BASE - DMA2_Channel7_BASE) + 7;
+                    return (uint32_t(_instance) - DMA2_Channel7_BASE) / (DMA2_Channel8_BASE - DMA2_Channel7_BASE) + 7;
                 }
-            #endif
+#endif
             default:
                 return 1;
         }
-        // clang-format on
     }
 
-    static constexpr bool dst_is_peripheral(const Mode mode) {
+    static constexpr bool dst_is_periph(const Mode mode) {
         switch (mode) {
             case Mode::toPeriph:
-            case Mode::toPeriphCirclular:
+            case Mode::toPeriphCircular:
                 return true;
             default:
                 return false;
@@ -183,41 +168,49 @@ class DmaChannel {
     }
 
     __fast_inline void on_transfer_half_interrupt() { EXECUTE(half_cb_); }
+
     __fast_inline void on_transfer_done_interrupt() { EXECUTE(done_cb_); }
 
-    void enable_rcc(const Enable en);
-    void set_peripheral_width(const size_t width);
-    void set_mem_width(const size_t width);
+#ifdef ENABLE_DMA1
+    friend void ::DMA1_Channel1_IRQHandler(void);
+    friend void ::DMA1_Channel2_IRQHandler(void);
+    friend void ::DMA1_Channel3_IRQHandler(void);
+    friend void ::DMA1_Channel4_IRQHandler(void);
+    friend void ::DMA1_Channel5_IRQHandler(void);
+    friend void ::DMA1_Channel6_IRQHandler(void);
+    friend void ::DMA1_Channel7_IRQHandler(void);
+#endif
+
+#ifdef ENABLE_DMA2
+    friend void ::DMA2_Channel1_IRQHandler(void);
+    friend void ::DMA2_Channel2_IRQHandler(void);
+    friend void ::DMA2_Channel3_IRQHandler(void);
+    friend void ::DMA2_Channel4_IRQHandler(void);
+    friend void ::DMA2_Channel5_IRQHandler(void);
+    friend void ::DMA2_Channel6_IRQHandler(void);
+    friend void ::DMA2_Channel7_IRQHandler(void);
+    friend void ::DMA2_Channel8_IRQHandler(void);
+    friend void ::DMA2_Channel9_IRQHandler(void);
+    friend void ::DMA2_Channel10_IRQHandler(void);
+    friend void ::DMA2_Channel11_IRQHandler(void);
+#endif
+
     void start(void *dst, const void *src, size_t size);
-
-    __fast_inline void set_dst_width(const size_t width) {
-        if (dst_is_peripheral(mode_)) {
-            set_peripheral_width(width);
-        } else {
-            set_mem_width(width);
-        }
-    }
-
-    __fast_inline void set_src_width(const size_t width) {
-        // TODO 验证判断是否写错了
-        if (!dst_is_peripheral(mode_)) {
-            set_peripheral_width(width);
-        } else {
-            set_mem_width(width);
-        }
-    }
 
    public:
     DmaChannel() = delete;
-    DmaChannel(const DmaChannel &) = delete;
-    DmaChannel(DmaChannel &&) = delete;
+
+    DmaChannel(const DmaChannel &other) = delete;
+    DmaChannel(DmaChannel &&other) = delete;
 
     DmaChannel(DMA_Channel_TypeDef *_instance)
         : instance(_instance),
-          done_mask(calculate_done_mask(_instance)),
-          half_mask(calculate_half_mask(_instance)),
+          done_mask(calculate_done_mask(instance)),
+          half_mask(calculate_half_mask(instance)),
           dma_index(calculate_dma_index(_instance)),
-          channel_index(calculate_channel_index(_instance)) {};
+          channel_index(calculate_channel_index(_instance)) {
+        ;
+    }
 
     void init(const Mode mode, const Priority priority);
 
@@ -244,24 +237,22 @@ class DmaChannel {
         set_dst_width(sizeof(T) << 3);
         set_src_width(sizeof(T) << 3);
 
-        start(reinterpret_cast<void *>(const_cast<T *>(dst)), reinterpret_cast<const void *>(src), size);
+        start(reinterpret_cast<void *>(const_cast<T *>((dst))), reinterpret_cast<const void *>(src), size);
     }
 
     size_t pending();
 
-    void enable_it(const NvicPriority priority, const Enable enable = EN);
+    void enable_it(const NvicPriority _priority, const Enable en = EN);
 
-    void enable_done_it(const Enable enable = EN);
-    void enable_half_it(const Enable enable = EN);
+    void enable_done_it(const Enable en = EN);
+    void enable_half_it(const Enable en = EN);
+
     void bind_done_cb(auto &&cb) { done_cb_ = std::move(cb); }
 
     void bind_half_cb(auto &&cb) { half_cb_ = std::move(cb); }
 
-    bool is_done() const { return DMA_GetFlagStatus(done_mask); }
+    bool is_done() { return DMA_GetFlagStatus(done_mask); }
 };
-}  // namespace ymd::hal
-
-namespace ymd::hal {
 
 #ifdef ENABLE_DMA1
 extern DmaChannel dma1Ch1;

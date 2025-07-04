@@ -23,7 +23,7 @@ static constexpr size_t UART_FIFO_BUF_SIZE = 256;
 #endif
 
 #ifndef UART_DMA_BUF_SIZE
-stattic constexpr size_t UART_DMA_BUF_SIZE = 64;
+static constexpr size_t UART_DMA_BUF_SIZE = 64;
 #endif
 
 #ifndef UART_TX_DMA_BUF_SIZE
@@ -51,52 +51,51 @@ class Uart : public BusBase {
     Fifo_t<char, UART_FIFO_BUF_SIZE> tx_fifo_;
     Fifo_t<char, UART_FIFO_BUF_SIZE> rx_fifo_;
 
-    Uart() {}
+    Uart() { ; }
 
     __fast_inline void call_post_tx_callback() { EXECUTE(post_tx_cb_); }
     __fast_inline void call_post_rx_callback() { EXECUTE(post_rx_cb_); }
 
    public:
-    void read1(char &data);
-    void readN(char *data, size_t size);
-
-    virtual void write1(const char data) = 0;
-    virtual void writeN(const char *data, size_t size) = 0;
-
-    hal::HalResult read(uint32_t &data) {
-        char _d;
-        read1(_d);
-        data = _d;
+    hal::HalResult read(uint32_t& data) {
+        char _;
+        read1(_);
+        data = _;
         return hal::HalResult::ok();
-    }
-
+    };
     hal::HalResult write(const uint32_t data) {
         write1(char(data));
         return hal::HalResult::ok();
-    }
+    };
 
-    hal::HalResult transitive(const uint32_t data_rx, const uint32_t data_tx) {
-        write(char(data_tx));
+    hal::HalResult transitive(uint32_t& data_rx, const uint32_t data_tx) {
+        write1(char(data_tx));
         return hal::HalResult::ok();
-    }
+    };
 
-    Uart(const Uart &) = delete;
-    Uart(Uart &&) = delete;
+    virtual void writeN(const char* data_ptr, const size_t len) = 0;
 
-    virtual Gpio &txio() = 0;
-    virtual Gpio &rxio() = 0;
+    virtual void write1(const char data) = 0;
 
-    virtual void init(const uint32_t baud, const CommStrategy rx_strategy = CommStrategy::Interrupt,
+    void read1(char& data);
+    void readN(char* pbuf, const size_t len);
+    Uart(const Uart& other) = delete;
+    Uart(Uart&& other) = delete;
+
+    virtual Gpio& txio() = 0;
+    virtual Gpio& rxio() = 0;
+
+    virtual void init(const uint32_t baudrate, const CommStrategy rx_strategy = CommStrategy::Interrupt,
                       const CommStrategy tx_strategy = CommStrategy::Blocking) = 0;
 
     size_t available() const { return rx_fifo_.available(); }
     size_t pending() const { return tx_fifo_.available(); }
     size_t remain() const { return tx_fifo_.size() - tx_fifo_.available(); }
 
-    virtual void set_tx_strategy(const CommStrategy strategy) = 0;
-    virtual void set_rx_strategy(const CommStrategy strategy) = 0;
-    void binding_post_tx_callback(Callback &&cb) { post_tx_cb_ = std::move(cb); }
-    void binding_post_rx_callback(Callback &&cb) { post_rx_cb_ = std::move(cb); }
+    virtual void set_tx_strategy(const CommStrategy _tx_strategy) = 0;
+    virtual void set_rx_strategy(const CommStrategy _rxMethod) = 0;
+    void bind_post_tx_cb(auto&& cb) { post_tx_cb_ = std::move(cb); }
+    void bind_post_rx_cb(auto&& cb) { post_rx_cb_ = std::move(cb); }
 };
 
 }  // namespace ymd::hal

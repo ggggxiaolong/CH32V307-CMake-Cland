@@ -7,25 +7,55 @@
 #include "core/io/regs.hpp"
 
 #ifndef ASSERT_REG_IS_32BIT
-#define ASSERT_REG_IS_32BIT(name) static_assert(sizeof(name) == 4, #name " Register must be 32-bit")
+#define ASSERT_REG_IS_32BIT(name) static_assert((sizeof(name) == 4), #name " is not 4 bytes");
 #endif
 
 namespace ymd::hal {
 
 struct R32_DMA_INTFR {
     uint32_t DATA;
+
+    // constexpr bool get_global_flag(const uint8_t index){
+    //     const uint32_t temp = uint32_t(DATA);
+    //     return  temp & (1 << (index * 4 - 4));
+    // }
+
+    // constexpr bool get_transfer_done_flag(const uint8_t index){
+    //     const uint32_t temp = uint32_t(DATA);
+    //     return temp & (1 << (index * 4 - 3));
+    // }
+
+    // constexpr bool get_transfer_onhalf_flag(const uint8_t index){
+    //     const uint32_t temp = uint32_t(DATA);
+    //     return temp & (1 << (index * 4 - 2));
+    // }
+
+    // constexpr bool get_transfer_error_flag(const uint8_t index){
+    //     const uint32_t temp = uint32_t(DATA);
+    //     return temp & (1 << (index * 4 - 1));
+    // }
 };
-ASSERT_REG_IS_32BIT(R32_DMA_INTFR);
+ASSERT_REG_IS_32BIT(R32_DMA_INTFR)
 
 struct R32_DMA_INTFCR {
     uint32_t DATA;
-};
-ASSERT_REG_IS_32BIT(R32_DMA_INTFCR);
 
-struct R32_DMA_INTMSK {
-    uint32_t DATA;
+    // constexpr void clear_global_flag(const uint8_t index){
+    //     DATA = (1 << (index * 4 - 4));
+    // }
+
+    // constexpr void clear_transfer_done_flag(const uint8_t index){
+    //     DATA = (1 << (index * 4 - 3));
+    // }
+    // constexpr void clear_transfer_onhalf_flag(const uint8_t index){
+    //     DATA = (1 << (index * 4 - 2));
+    // }
+
+    // constexpr void clear_transfer_error_flag(const uint8_t index){
+    //     DATA = (1 << (index * 4 - 1));
+    // }
 };
-ASSERT_REG_IS_32BIT(R32_DMA_INTMSK);
+ASSERT_REG_IS_32BIT(R32_DMA_INTFCR)
 
 struct R32_DMA_CFGR {
     uint32_t EN : 1;
@@ -40,9 +70,9 @@ struct R32_DMA_CFGR {
     uint32_t MSIZE : 2;
     uint32_t PL : 2;
     uint32_t MEM2MEM : 1;
-    uint32_t reserved : 17;
+    uint32_t : 17;
 };
-ASSERT_REG_IS_32BIT(R32_DMA_CFGR);
+ASSERT_REG_IS_32BIT(R32_DMA_CFGR)
 
 using R32_DMA_CNTR = uint32_t;
 using R32_DMA_PADDR = uint32_t;
@@ -59,21 +89,36 @@ struct DMA_CH_Def {
     volatile R32_DMA_MADDR MADDR;
 
     constexpr void enable(const Enable en) { CFGR.EN = en == EN; }
+
     constexpr void enable_transfer_done_interrupt(const Enable en) { CFGR.TCIE = en == EN; }
+
     constexpr void enable_transfer_onhalf_interrupt(const Enable en) { CFGR.HTIE = en == EN; }
+
     void enable_transfer_error_interrupt(const Enable en) { CFGR.TEIE = en == EN; }
-    void set_source_is_men(const Enable en) { CFGR.DIR = en == EN; }
+
+    void set_source_is_mem(const Enable en) { CFGR.DIR = en == EN; }
+
     void enable_circular_mode(const Enable en) { CFGR.CIRC = en == EN; }
-    void enable_peripheral_increment(const Enable en) { CFGR.PINC = en == EN; }
-    void enable_men_increment(const Enable en) { CFGR.MINC = en == EN; }
-    void set_peripheral_data_size_bytes(const uint8_t size) { CFGR.MSIZE = size - 1; }
+
+    void enable_periph_increment(const Enable en) { CFGR.PINC = en == EN; }
+
+    void enable_mem_increment(const Enable en) { CFGR.MINC = en == EN; }
+
+    void set_periph_data_size_bytes(const uint8_t size) { CFGR.PSIZE = size - 1; }
+
+    void set_mem_data_size_bytes(const uint8_t size) { CFGR.MSIZE = size - 1; }
+
     void set_priority(const uint8_t prio) { CFGR.PL = prio; }
-    void enable_mem2men(const Enable en) { CFGR.MEM2MEM = en == EN; }
-    void set_peripheral_address(const uint32_t addr) { PADDR = addr; }
-    void set_men_address(const uint32_t addr) { MADDR = addr; }
-    void set_data_len(const uint32_t len) { CNTR = len; }
+
+    void enable_mem2mem(const Enable en) { CFGR.MEM2MEM = en == EN; }
+
+    void set_periph_address(const uint32_t addr) { PADDR = addr; }
+
+    void set_mem_address(const uint32_t addr) { MADDR = addr; }
+
+    void set_data_len(const uint16_t len) { CNTR = len; }
 };
-static_assert(sizeof(DMA_CH_Def) == 16, "DMA_CH_Def size must be 16 bytes");
+static_assert((sizeof(DMA_CH_Def) == 16));
 
 struct DMA1_Def {
     volatile R32_DMA_INTFR INTFR;
@@ -81,11 +126,17 @@ struct DMA1_Def {
     volatile DMA_CH_Def CH[8];
 
     constexpr void clear_global_flag(const uint8_t index) { INTFCR.DATA = (1 << (index * 4 - 4)); }
+
     constexpr bool get_global_flag(const uint8_t index) { return std::bit_cast<uint32_t>(INTFR.DATA) & (1 << (index * 4 - 4)); }
+
     constexpr void clear_transfer_done_flag(const uint8_t index) { INTFCR.DATA = (1 << (index * 4 - 3)); }
+
     constexpr bool get_transfer_done_flag(const uint8_t index) { return std::bit_cast<uint32_t>(INTFR.DATA) & (1 << (index * 4 - 3)); }
+
     constexpr void clear_transfer_onhalf_flag(const uint8_t index) { INTFCR.DATA = (1 << (index * 4 - 2)); }
+
     constexpr bool get_transfer_onhalf_flag(const uint8_t index) { return std::bit_cast<uint32_t>(INTFR.DATA) & (1 << (index * 4 - 2)); }
+
     constexpr void clear_transfer_error_flag(const uint8_t index) { INTFCR.DATA = (1 << (index * 4 - 1)); }
     constexpr bool get_transfer_error_flag(const uint8_t index) { return std::bit_cast<uint32_t>(INTFR.DATA) & (1 << (index * 4 - 1)); }
 };
@@ -98,43 +149,42 @@ struct DMA2_Def {
     volatile R32_DMA_INTFCR EXTEM_INTFCR;
 
     constexpr void clear_global_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFCR : INTFCR;
-        reg.DATA = (1 << (index * 4 - 4));
+        auto& reg = index > 7 ? EXTEM_INTFCR : INTFCR;
+        reg.DATA = (1 << ((index & 0b111) * 4 - 4));
     }
 
     constexpr bool get_global_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFR : INTFR;
+        auto& reg = index > 7 ? EXTEM_INTFR : INTFR;
         return std::bit_cast<uint32_t>(reg.DATA) & (1 << ((index & 0b111) * 4 - 4));
     }
-
     constexpr void clear_transfer_done_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFCR : INTFCR;
+        auto& reg = index > 7 ? EXTEM_INTFCR : INTFCR;
         reg.DATA = (1 << ((index & 0b111) * 4 - 3));
     }
 
     constexpr bool get_transfer_done_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFR : INTFR;
+        auto& reg = index > 7 ? EXTEM_INTFR : INTFR;
         return std::bit_cast<uint32_t>(reg.DATA) & (1 << ((index & 0b111) * 4 - 3));
     }
 
-    constexpr void clear_transfer_error_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFCR : INTFCR;
-        reg.DATA = (1 << ((index & 0b111) * 4 - 1));
-    }
-
-    constexpr bool get_transfer_error_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFR : INTFR;
-        return std::bit_cast<uint32_t>(reg.DATA) & (1 << ((index & 0b111) * 4 - 1));
-    }
-
     constexpr void clear_transfer_onhalf_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFCR : INTFCR;
+        auto& reg = index > 7 ? EXTEM_INTFCR : INTFCR;
         reg.DATA = (1 << ((index & 0b111) * 4 - 2));
     }
 
     constexpr bool get_transfer_onhalf_flag(const uint8_t index) {
-        auto &reg = index > 7 ? EXTEM_INTFR : INTFR;
+        auto& reg = index > 7 ? EXTEM_INTFR : INTFR;
         return std::bit_cast<uint32_t>(reg.DATA) & (1 << ((index & 0b111) * 4 - 2));
     }
+
+    constexpr void clear_transfer_error_flag(const uint8_t index) {
+        auto& reg = index > 7 ? EXTEM_INTFCR : INTFCR;
+        reg.DATA = (1 << ((index & 0b111) * 4 - 1));
+    }
+    constexpr bool get_transfer_error_flag(const uint8_t index) {
+        auto& reg = index > 7 ? EXTEM_INTFR : INTFR;
+        return std::bit_cast<uint32_t>(reg.DATA) & (1 << ((index & 0b111) * 4 - 1));
+    }
 };
+
 }  // namespace ymd::hal

@@ -239,27 +239,6 @@ class OutputStream : public OutputStreamIntf {
     Buf buf_;
 
    public:
-    auto eps() const { return config_.eps; }
-    auto radix() const { return config_.radix; }
-
-    Endl endl() const { return {}; }
-
-    Splitter splitter() const { return {}; }
-
-    template <char chr>
-    Brackets<chr> brackets() const {
-        return {};
-    }
-
-    OutputStream& flush();
-
-    OutputStream& reconf(const Config config) {
-        config_ = config;
-        sp_len = strlen(config_.splitter);
-        return *this;
-    }
-
-    Config config() const { return config_; }
     OutputStream() { reconf(DEFAULT_CONFIG); }
 
     virtual ~OutputStream() = default;
@@ -441,6 +420,8 @@ class OutputStream : public OutputStreamIntf {
     }
 
    public:
+    auto eps() const { return config_.eps; }
+
     template <size_t Q>
     OutputStream& operator<<(const iq_t<Q>& val) {
         char str[12] = {0};
@@ -565,6 +546,26 @@ class OutputStream : public OutputStreamIntf {
         print_endl();
         return *this;
     }
+    auto radix() const { return config_.radix; }
+
+    Endl endl() const { return {}; }
+
+    Splitter splitter() const { return {}; }
+
+    template <char chr>
+    Brackets<chr> brackets() const {
+        return {};
+    }
+
+    OutputStream& flush();
+
+    OutputStream& reconf(const Config config) {
+        config_ = config;
+        sp_len = strlen(config_.splitter);
+        return *this;
+    }
+
+    Config config() const { return config_; }
 
     class __Guard {
         OutputStream& os_;

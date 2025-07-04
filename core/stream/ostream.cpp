@@ -17,57 +17,84 @@ OutputStream& OutputStream::operator<<(std::ios_base& (*func)(std::ios_base&)) {
             set_radix(8);
             break;
         }
-        if (func == &std::hex) {
-            set_radix(16);
-            break;
-        }
         if (func == &std::dec) {
             set_radix(10);
+            break;
+        }
+        if (func == &std::hex) {
+            set_radix(16);
             break;
         }
         if (func == &std::fixed) {
             // TODO
             break;
         }
-        // boolalpha 是 C++ 中的一个操纵符，用于设置流的格式标志，使得布尔值在输入/输出时以 true 或 false 的形式显示，而不是 1 或 0
+
+        if (func == &std::scientific) {
+            // TODO
+            break;
+        }
+
         if (func == &std::boolalpha) {
             config_.boolalpha = true;
             break;
         }
+
         if (func == &std::noboolalpha) {
             config_.boolalpha = false;
             break;
         }
-        // 使输出流在显示正数时自动加上正号（+）
+
         if (func == &std::showpos) {
             config_.showpos = true;
             break;
         }
+
         if (func == &std::noshowpos) {
             config_.showpos = false;
             break;
         }
-        // 在输出整数时，显示进制前缀（如 0x 表示十六进制、0 表示八进制）
+
         if (func == &std::showbase) {
             config_.showbase = true;
             break;
         }
+
         if (func == &std::noshowbase) {
             config_.showbase = false;
             break;
         }
+        // TODO 支持std::flush
+
+        // if (func == &std::flush<std::true_type, std::true_type>){
+        //     this->flush();
+        //     break;
+        // }
+        // if (func == static_cast<std::ios_base&(*)(std::ios_base&)>(&std::flush)) {
+        //     this->flush();
+        //     break;
+        // }
+        // TODO 支持std::endl
+
+        // if (func == +[](OutputStream& os) -> OutputStream& { return std::endl(os); }){
+        //     this->write("\r\n", 2);
+        //     this->flush();
+        //     break;
+        // }
     } while (false);
+
     return *this;
 }
 
 #define PRINT_FLOAT_TEMPLATE(convfunc)                  \
     char str[12] = {0};                                 \
     const auto len = convfunc(value, str, this->eps()); \
-    if (config_.showbase and value > 0) *this << '+';   \
+    if (config_.showpos and value >= 0) *this << '+';   \
     this->write(str, len);
 
 int OutputStream::transform_char(const char chr) const {
     if (likely(!config_.flags)) return chr;
+
     if (unlikely(config_.nospace) and unlikely(chr == ' ')) return -1;
     if (unlikely(config_.no_brackets)) {
         switch (chr) {
@@ -80,30 +107,47 @@ int OutputStream::transform_char(const char chr) const {
             case '<':
             case '>':
                 return -1;
+                // return chr;
             default:
                 return chr;
         }
     }
+
     return chr;
 }
 
 void OutputStream::print_source_loc(const std::source_location& loc) {
     const auto guard = this->create_guard();
     this->println();
+
     this->set_splitter('\0');
     this->set_indent(this->indent());
+
     this->println(loc.function_name());
     this->println(loc.file_name(), '(', loc.line(), ':', loc.column(), ')');
 }
 
 void OutputStream::checked_write(const char* pbuf, const size_t len) {
-    // Buf buf;
+    // 将数据分为大块处理提高性能
+
+    Buf buf;
+
     for (size_t i = 0; i < len; i++) {
         const auto res = transform_char(pbuf[i]);
         if (likely(res) >= 0) {
+            // if(unlikely(buf.full())){
+            //     write(buf.buf, buf.buf_cap);
+            //     buf.clear();
+            // }else{
+            //     buf.push_back(res);
+            // }
             write(char(res));
         }
     }
+
+    // if(likely(buf.size)){
+    //     write(buf.buf, buf.size);
+    // }
 }
 
 OutputStream& OutputStream::operator<<(const float value) {
@@ -126,7 +170,9 @@ OutputStream& OutputStream::operator<<(const double value) {
     this->write(str, len);
 
 void OutputStream::print_int(const int val) { PRINT_INT_TEMPLATE(12, StringUtils::itoa); }
+
 void OutputStream::print_int(const uint64_t val) { PRINT_INT_TEMPLATE(24, StringUtils::iutoa); }
+
 void OutputStream::print_int(const int64_t val) { PRINT_INT_TEMPLATE(24, StringUtils::iltoa); }
 
 #undef PUT_FLOAT_TEMPLATE
@@ -136,12 +182,12 @@ OutputStream& OutputStream::operator<<(const bool val) {
         write(val ? '1' : '0');
         return *this;
     } else {
-        return *this << (val ? "true" : "false");
+        return *this << ((val) ? "true" : "false");
     }
 }
 
 OutputStream& OutputStream::flush() {
-    buf_.flush([&](const std::span<const char> pbuf) { this->sendout(pbuf); });
+    buf_.flush([this](const std::span<const char> pbuf) { this->sendout(pbuf); });
     return *this;
 }
 

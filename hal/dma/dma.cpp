@@ -74,6 +74,7 @@ DMA1_IT_TEMPLATE(7);
             DMA2_Inst->clear_transfer_onhalf_flag(y);          \
         }                                                      \
     }
+
 DMA2_IT_TEMPLATE(1);
 DMA2_IT_TEMPLATE(2);
 DMA2_IT_TEMPLATE(3);
@@ -87,25 +88,25 @@ DMA2_IT_TEMPLATE(10);
 DMA2_IT_TEMPLATE(11);
 #endif
 
-#define COPY_CONST(a, b) std::conditional_t<std::is_const_v<std::decay_t<decltype(a)>>, std::add_const<b *>, std::remove_const_t<b *>>
+#define COPY_CONST(a, b) std::conditional_t<std::is_const_v<std::decay_t<decltype(a)>>, std::add_const_t<b *>, std::remove_const_t<b *>>
 
 #define SDK_INST(x) (reinterpret_cast<COPY_CONST(instance, DMA_Channel_TypeDef)>(x))
 
 void DmaChannel::enable_rcc(Enable en) {
-    auto state = en == EN ? ENABLE : DISABLE;
 #ifdef ENABLE_DMA2
     if (instance < DMA2_Channel1) {
-        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, state);
+        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, en == EN);
     } else {
-        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA2, state);
+        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA2, en == EN);
     }
+
 #else
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, state);
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, en == EN);
 #endif
 }
 
 void DmaChannel::start(void *dst, const void *src, const size_t size) {
-    if (dst_is_peripheral(mode_)) {
+    if (dst_is_periph(mode_)) {
         SDK_INST(instance)->PADDR = (uint32_t)dst;
         SDK_INST(instance)->MADDR = (uint32_t)src;
     } else {
@@ -120,6 +121,7 @@ void DmaChannel::init(const Mode mode, const Priority priority) {
     enable_rcc(EN);
     mode_ = mode;
     DMA_InitTypeDef DMA_InitStructure;
+
     DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
 
     switch (mode) {
@@ -135,7 +137,7 @@ void DmaChannel::init(const Mode mode, const Priority priority) {
             DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
             DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
             break;
-        case Mode::toPeriphCirclular:
+        case Mode::toPeriphCircular:
             DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
             [[fallthrough]];
         case Mode::toPeriph:
@@ -151,20 +153,20 @@ void DmaChannel::init(const Mode mode, const Priority priority) {
             DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
             [[fallthrough]];
         case Mode::synergy:
-            DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)NULL;
-            DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)NULL;
+            DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)nullptr;
+            DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)nullptr;
             DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
             DMA_InitStructure.DMA_BufferSize = 0;
             DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Enable;
             DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-            DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+            DMA_InitStructure.DMA_M2M = DMA_M2M_Enable;
             break;
         case Mode::distributeCircular:
             DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
             [[fallthrough]];
         case Mode::distribute:
-            DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)NULL;
-            DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)NULL;
+            DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)nullptr;
+            DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)nullptr;
             DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
             DMA_InitStructure.DMA_BufferSize = 0;
             DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Enable;
@@ -174,12 +176,16 @@ void DmaChannel::init(const Mode mode, const Priority priority) {
         case Mode::automatic:
             break;
     }
+
     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
     DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+
     DMA_InitStructure.DMA_Priority = ((uint32_t)priority) << 12;
+
+    DMA_Init(SDK_INST(instance), &DMA_InitStructure);
 }
 
-void DmaChannel::enable_it(const NvicPriority priority, const Enable en) {
+void DmaChannel::enable_it(const NvicPriority _priority, const Enable en) {
     IRQn irq = IRQn_Type::Software_IRQn;
     switch (dma_index) {
         case 1:
@@ -192,28 +198,31 @@ void DmaChannel::enable_it(const NvicPriority priority, const Enable en) {
             } else {
                 irq = (IRQn)((int)DMA2_Channel6_IRQn + ((int)(DMA2_Channel7_IRQn - DMA2_Channel6_IRQn) * (channel_index - 6)));
             }
+            break;
 #endif
     }
-    NvicPriority::enable(priority, IRQn(irq), en);
+
+    NvicPriority::enable(_priority, IRQn(irq), en);
 }
 
-void DmaChannel::set_peripheral_width(const size_t width) {
-    uint32_t tmreg = SDK_INST(instance)->CFGR;
-    tmreg &= (~(0b11u << 8));
-    tmreg |= ((width >> 3) - 1) << 8;
-    SDK_INST(instance)->CFGR = tmreg;
+void DmaChannel::set_periph_width(const size_t width) {
+    uint32_t tmpreg = SDK_INST(instance)->CFGR;
+    tmpreg &= ((~(0b11u << 8)));
+    tmpreg |= ((width >> 3) - 1) << 8;
+    SDK_INST(instance)->CFGR = tmpreg;
 }
 
 void DmaChannel::set_mem_width(const size_t width) {
-    uint32_t tmreg = SDK_INST(instance)->CFGR;
-    tmreg &= (~(0b11u << 10));
-    tmreg |= ((width >> 3) - 1) << 10;
-    SDK_INST(instance)->CFGR = tmreg;
+    uint32_t tmpreg = SDK_INST(instance)->CFGR;
+    tmpreg &= ((~(0b11u << 10)));
+    tmpreg |= ((width >> 3) - 1) << 10;
+    SDK_INST(instance)->CFGR = tmpreg;
 }
 
 void DmaChannel::resume() {
     DMA_ClearFlag(done_mask);
     DMA_ClearFlag(half_mask);
+
     DMA_Cmd(SDK_INST(instance), ENABLE);
 }
 
@@ -221,10 +230,10 @@ size_t DmaChannel::pending() { return SDK_INST(instance)->CNTR; }
 
 void DmaChannel::enable_done_it(const Enable en) {
     DMA_ClearITPendingBit(done_mask);
-    DMA_ITConfig(SDK_INST(instance), DMA_IT_HT, en.to_state());
+    DMA_ITConfig(SDK_INST(instance), DMA_IT_TC, en == EN);
 }
 
 void DmaChannel::enable_half_it(const Enable en) {
     DMA_ClearITPendingBit(half_mask);
-    DMA_ITConfig(SDK_INST(instance), DMA_IT_HT, en.to_state());
+    DMA_ITConfig(SDK_INST(instance), DMA_IT_HT, en == EN);
 }

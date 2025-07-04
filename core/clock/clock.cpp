@@ -12,7 +12,7 @@
 #include "time.hpp"
 
 static constexpr size_t TICKS_PER_MS = (F_CPU / 1000);
-static constexpr size_t TICKS_PER_US = (F_CPU / 1000, 000);
+static constexpr size_t TICKS_PER_US = (TICKS_PER_MS / 1000);
 
 static constexpr size_t MICRO_TRIM = 0;
 static constexpr size_t NANO_TRIM = 300;
